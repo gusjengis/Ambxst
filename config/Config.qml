@@ -494,6 +494,7 @@ Singleton {
             property int launcherIconSize: 24
             property string pillStyle: "default"
             property list<string> screenList: []
+            property bool showLayoutButton: true
             property bool showLayoutSwitchButton: true
             property bool enableFirefoxPlayer: false
             property list<var> barColor: [["surface", 0.0]]

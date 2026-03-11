@@ -797,11 +797,12 @@ Item {
                         }
 
                         ToggleRow {
-                            label: "Show Layout Switch Button"
-                            checked: Config.bar.showLayoutSwitchButton ?? true
+                            label: "Show Layout Button"
+                            checked: Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true
                             onToggled: value => {
-                                if (value !== Config.bar.showLayoutSwitchButton) {
+                                if (value !== (Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true)) {
                                     GlobalStates.markShellChanged();
+                                    Config.bar.showLayoutButton = value;
                                     Config.bar.showLayoutSwitchButton = value;
                                 }
                             }
