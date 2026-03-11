@@ -797,6 +797,17 @@ Item {
                         }
 
                         ToggleRow {
+                            label: "Show Layout Switch Button"
+                            checked: Config.bar.showLayoutSwitchButton ?? true
+                            onToggled: value => {
+                                if (value !== Config.bar.showLayoutSwitchButton) {
+                                    GlobalStates.markShellChanged();
+                                    Config.bar.showLayoutSwitchButton = value;
+                                }
+                            }
+                        }
+
+                        ToggleRow {
                             label: "Enable Firefox Player"
                             checked: Config.bar.enableFirefoxPlayer ?? false
                             onToggled: value => {

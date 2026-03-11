@@ -102,6 +102,7 @@ Item {
     readonly property real outerRadius: Styling.radius(0)
     readonly property real innerRadius: (Config.bar.pillStyle === "squished") ? Styling.radius(0) / 2 : Styling.radius(0)
     readonly property bool pinButtonVisible: Config.bar?.showPinButton ?? true
+    readonly property bool layoutSwitchButtonVisible: Config.bar?.showLayoutSwitchButton ?? true
 
     // Reveal logic
     readonly property bool reveal: {
@@ -381,15 +382,20 @@ Item {
                                 property var screen: root.screen
                             }
                             startRadius: root.innerRadius
-                            endRadius: root.innerRadius
+                            endRadius: (root.layoutSwitchButtonVisible || root.pinButtonVisible || root.dockAtStart) ? root.innerRadius : root.outerRadius
                         }
 
                         LayoutSelectorButton {
                             id: layoutSelectorButton
+                            visible: root.layoutSwitchButtonVisible
                             bar: root
                             layerEnabled: root.shadowsEnabled
                             startRadius: root.innerRadius
-                            endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
+                            endRadius: root.pinButtonVisible ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
+                            Layout.preferredWidth: visible ? 36 : 0
+                            Layout.preferredHeight: visible ? 36 : 0
+                            Layout.maximumWidth: visible ? 36 : 0
+                            Layout.maximumHeight: visible ? 36 : 0
                         }
 
                         // Pin button (horizontal)
@@ -627,12 +633,17 @@ Item {
 
                                 LayoutSelectorButton {
                                     id: layoutSelectorButtonVert
+                                    visible: root.layoutSwitchButtonVisible
                                     bar: root
                                     layerEnabled: root.shadowsEnabled
                                     Layout.alignment: Qt.AlignHCenter
                                     startRadius: root.outerRadius
                                     endRadius: root.innerRadius
                                     vertical: true
+                                    Layout.preferredWidth: visible ? 36 : 0
+                                    Layout.preferredHeight: visible ? 36 : 0
+                                    Layout.maximumWidth: visible ? 36 : 0
+                                    Layout.maximumHeight: visible ? 36 : 0
                                 }
 
                                 Workspaces {
@@ -642,8 +653,8 @@ Item {
                                         property var screen: root.screen
                                     }
                                     Layout.alignment: Qt.AlignHCenter
-                                    startRadius: root.innerRadius
-                                    endRadius: root.innerRadius
+                                    startRadius: root.layoutSwitchButtonVisible ? root.innerRadius : root.outerRadius
+                                    endRadius: (root.pinButtonVisible || root.integratedDockEnabled) ? root.innerRadius : root.outerRadius
                                 }
 
                                 // Pin button (vertical)
