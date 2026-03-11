@@ -14,6 +14,7 @@ var data = {
     "syncShadowColor": false,
     "gapsIn": 2,
     "gapsOut": 4,
+    "manageGapsOut": true,
     "layout": "dwindle",
     "shadowEnabled": true,
     "shadowRange": 8,

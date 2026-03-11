@@ -55,6 +55,14 @@ Singleton {
     property string hyprlandLayout: "dwindle"
     property bool hyprlandLayoutReady: false
     readonly property var availableLayouts: ["dwindle", "master", "scrolling"]
+    property var hyprlandGapsOutLive: ({
+        top: 4,
+        right: 4,
+        bottom: 4,
+        left: 4,
+        raw: "4"
+    })
+    property bool hyprlandGapsOutReady: false
 
     function setHyprlandLayout(layout) {
         if (availableLayouts.includes(layout)) {
@@ -66,6 +74,62 @@ Singleton {
         const currentIndex = availableLayouts.indexOf(hyprlandLayout);
         const nextIndex = (currentIndex + 1) % availableLayouts.length;
         hyprlandLayout = availableLayouts[nextIndex];
+    }
+
+    function _expandGapsOutValues(rawValue) {
+        var tokens = [];
+
+        if (typeof rawValue === "number") {
+            tokens = [rawValue];
+        } else if (typeof rawValue === "string") {
+            var matches = rawValue.match(/-?\d+/g);
+            tokens = matches ? matches.map(Number) : [];
+        } else if (rawValue !== null && rawValue !== undefined) {
+            tokens = [Number(rawValue)];
+        }
+
+        tokens = tokens.filter(function(value) {
+            return !isNaN(value);
+        });
+
+        if (tokens.length === 0) {
+            tokens = [Config.hyprland?.gapsOut ?? 4];
+        }
+
+        if (tokens.length === 1) {
+            tokens = [tokens[0], tokens[0], tokens[0], tokens[0]];
+        } else if (tokens.length === 2) {
+            tokens = [tokens[0], tokens[1], tokens[0], tokens[1]];
+        } else if (tokens.length === 3) {
+            tokens = [tokens[0], tokens[1], tokens[2], tokens[1]];
+        } else {
+            tokens = tokens.slice(0, 4);
+        }
+
+        return {
+            top: tokens[0],
+            right: tokens[1],
+            bottom: tokens[2],
+            left: tokens[3],
+            raw: tokens.join(" ")
+        };
+    }
+
+    function updateHyprlandGapsOutLive(rawValue) {
+        hyprlandGapsOutLive = _expandGapsOutValues(rawValue);
+        hyprlandGapsOutReady = true;
+    }
+
+    function refreshHyprlandGapsOut() {
+        gapsOutQueryProcess.running = false;
+        gapsOutQueryProcess.command = ["hyprctl", "getoption", "general:gaps_out", "-j"];
+        gapsOutQueryProcess.running = true;
+    }
+
+    function getEffectiveHyprlandGapsOut(side) {
+        const managedByAmbxst = Config.hyprland?.manageGapsOut ?? true;
+        const source = managedByAmbxst ? _expandGapsOutValues(Config.hyprland?.gapsOut ?? 4) : hyprlandGapsOutLive;
+        return source[side] ?? source.top ?? (Config.hyprland?.gapsOut ?? 4);
     }
 
     // Query current layout from Hyprland on startup
@@ -90,6 +154,31 @@ Singleton {
         onExited: {
             // Mark as ready even if parsing failed
             root.hyprlandLayoutReady = true;
+        }
+    }
+
+    Process {
+        id: gapsOutQueryProcess
+        running: true
+        command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    const parsed = JSON.parse(data);
+                    const rawValue = parsed.custom ?? parsed.str ?? parsed.int;
+                    root.updateHyprlandGapsOutLive(rawValue);
+                    console.log("GlobalStates: Gaps out inicial desde Hyprland: " + root.hyprlandGapsOutLive.raw);
+                } catch (e) {
+                    console.warn("GlobalStates: Error parsing gaps_out from hyprctl: " + e);
+                }
+            }
+        }
+
+        onExited: {
+            if (!root.hyprlandGapsOutReady) {
+                root.updateHyprlandGapsOutLive(Config.hyprland?.gapsOut ?? 4);
+            }
         }
     }
 
@@ -462,7 +551,7 @@ Singleton {
         "layout",
         "syncBorderWidth", "borderSize",
         "syncRoundness", "rounding",
-        "gapsIn", "gapsOut",
+        "gapsIn", "gapsOut", "manageGapsOut",
         "borderAngle", "inactiveBorderAngle",
         "syncBorderColor", "activeBorderColor", "inactiveBorderColor",
         "shadowEnabled", "syncShadowColor", "syncShadowOpacity",

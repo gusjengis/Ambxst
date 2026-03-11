@@ -11,6 +11,9 @@ QtObject {
     id: root
 
     property Process hyprctlProcess: Process {}
+    property Process hyprctlReloadProcess: Process {
+        command: ["hyprctl", "reload"]
+    }
 
     property var currentAnimationConfig: null
     property Process readAnimationsProcess: Process {
@@ -167,7 +170,9 @@ QtObject {
         let batchCommand = "";
         batchCommand += `keyword general:border_size ${Config.hyprland.borderSize}`;
         batchCommand += ` ; keyword general:gaps_in ${Config.hyprland.gapsIn}`;
-        batchCommand += ` ; keyword general:gaps_out ${Config.hyprland.gapsOut}`;
+        if (Config.hyprland.manageGapsOut ?? true) {
+            batchCommand += ` ; keyword general:gaps_out ${Config.hyprland.gapsOut}`;
+        }
         batchCommand += ` ; keyword general:col.active_border ${activeColorFormatted}`;
         batchCommand += ` ; keyword general:col.inactive_border ${inactiveColorFormatted}`;
         batchCommand += ` ; keyword general:layout ${GlobalStates.hyprlandLayout}`;
@@ -236,6 +241,14 @@ QtObject {
             applyHyprlandConfig();
         }
         function onGapsOutChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageGapsOutChanged() {
+            if (!(Config.hyprland.manageGapsOut ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onActiveBorderColorChanged() {
@@ -399,12 +412,14 @@ QtObject {
         function onRawEvent(event) {
             if (event.name === "configreloaded") {
                 console.log("HyprlandConfig: Detectado configreloaded, reaplicando configuración...");
+                GlobalStates.refreshHyprlandGapsOut();
                 applyHyprlandConfig();
             }
         }
     }
 
     Component.onCompleted: {
+        GlobalStates.refreshHyprlandGapsOut();
         // Apply immediately if Config is already loaded.
         if (Config.loader.loaded) {
             applyHyprlandConfig();

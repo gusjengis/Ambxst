@@ -663,6 +663,7 @@ Singleton {
             property bool syncShadowColor: false
             property int gapsIn: 2
             property int gapsOut: 4
+            property bool manageGapsOut: true
             property string layout: "dwindle"
             property bool shadowEnabled: true
             property int shadowRange: 8

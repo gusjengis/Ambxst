@@ -180,18 +180,65 @@ Item {
         property int minValue: 0
         property int maxValue: 100
         property string suffix: ""
+        property bool inputEnabled: true
+        property bool showManagementToggle: false
+        property bool managementChecked: true
         signal valueEdited(int newValue)
+        signal managementToggled(bool checked)
 
         Layout.fillWidth: true
         spacing: 8
-        opacity: enabled ? 1.0 : 0.5
 
-        Text {
-            text: numberInputRowRoot.label
-            font.family: Config.theme.font
-            font.pixelSize: Styling.fontSize(0)
-            color: Colors.overBackground
+        Item {
             Layout.fillWidth: true
+            implicitHeight: labelText.implicitHeight
+
+            HoverHandler {
+                id: labelHover
+                enabled: numberInputRowRoot.showManagementToggle
+            }
+
+            Text {
+                id: labelText
+                anchors.verticalCenter: parent.verticalCenter
+                text: numberInputRowRoot.label
+                font.family: Config.theme.font
+                font.pixelSize: Styling.fontSize(0)
+                color: numberInputRowRoot.showManagementToggle
+                    ? (numberInputRowRoot.managementChecked ? Colors.overBackground : Colors.overSurfaceVariant)
+                    : Colors.overBackground
+                opacity: numberInputRowRoot.showManagementToggle && !numberInputRowRoot.managementChecked ? 0.65 : 1.0
+            }
+
+            Rectangle {
+                anchors.left: labelText.left
+                anchors.right: labelText.right
+                anchors.top: labelText.bottom
+                anchors.topMargin: 1
+                height: 1
+                color: Colors.overSurfaceVariant
+                opacity: numberInputRowRoot.showManagementToggle && labelHover.hovered ? 0.35 : 0.0
+
+                Behavior on opacity {
+                    enabled: Config.animDuration > 0
+                    NumberAnimation {
+                        duration: Config.animDuration / 3
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                enabled: numberInputRowRoot.showManagementToggle
+                hoverEnabled: true
+                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                onClicked: numberInputRowRoot.managementToggled(!numberInputRowRoot.managementChecked)
+            }
+
+            StyledToolTip {
+                tooltipText: "Click to toggle whether Ambxst manages this setting."
+                show: numberInputRowRoot.showManagementToggle && labelHover.hovered
+            }
         }
 
         StyledRect {
@@ -199,6 +246,7 @@ Item {
             Layout.preferredWidth: 60
             Layout.preferredHeight: 32
             radius: Styling.radius(-2)
+            opacity: (numberInputRowRoot.enabled && numberInputRowRoot.inputEnabled) ? 1.0 : 0.5
 
             TextInput {
                 id: numberTextInput
@@ -211,6 +259,7 @@ Item {
                 clip: true
                 verticalAlignment: TextInput.AlignVCenter
                 horizontalAlignment: TextInput.AlignHCenter
+                enabled: numberInputRowRoot.enabled && numberInputRowRoot.inputEnabled
                 validator: IntValidator {
                     bottom: numberInputRowRoot.minValue
                     top: numberInputRowRoot.maxValue
@@ -242,6 +291,7 @@ Item {
             color: Colors.overSurfaceVariant
             visible: suffix !== ""
         }
+
     }
 
     // Inline component for decimal input rows
@@ -744,9 +794,16 @@ Item {
                                 minValue: 0
                                 maxValue: 50
                                 suffix: "px"
+                                showManagementToggle: true
+                                managementChecked: Config.hyprland.manageGapsOut ?? true
+                                inputEnabled: Config.hyprland.manageGapsOut ?? true
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.gapsOut = newValue;
+                                }
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageGapsOut = checked;
                                 }
                             }
 
