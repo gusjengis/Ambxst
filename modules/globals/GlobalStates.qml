@@ -55,6 +55,12 @@ Singleton {
     property string hyprlandLayout: "dwindle"
     property bool hyprlandLayoutReady: false
     readonly property var availableLayouts: ["dwindle", "master", "scrolling"]
+    property int hyprlandBorderSizeLive: 2
+    property bool hyprlandBorderSizeReady: false
+    property int hyprlandRoundingLive: 16
+    property bool hyprlandRoundingReady: false
+    property int hyprlandGapsInLive: 2
+    property bool hyprlandGapsInReady: false
     property var hyprlandGapsOutLive: ({
         top: 4,
         right: 4,
@@ -120,10 +126,91 @@ Singleton {
         hyprlandGapsOutReady = true;
     }
 
+    function _normalizeHyprlandInt(rawValue, fallback) {
+        const parsed = Number(rawValue);
+        return isNaN(parsed) ? fallback : parsed;
+    }
+
+    function _extractHyprlandOptionValue(parsed) {
+        return parsed.custom ?? parsed.str ?? parsed.int;
+    }
+
+    function updateHyprlandBorderSizeLive(rawValue) {
+        hyprlandBorderSizeLive = _normalizeHyprlandInt(rawValue, Config.hyprland?.borderSize ?? 2);
+        hyprlandBorderSizeReady = true;
+    }
+
+    function updateHyprlandRoundingLive(rawValue) {
+        hyprlandRoundingLive = _normalizeHyprlandInt(rawValue, Config.hyprland?.rounding ?? 16);
+        hyprlandRoundingReady = true;
+    }
+
+    function updateHyprlandGapsInLive(rawValue) {
+        hyprlandGapsInLive = _normalizeHyprlandInt(rawValue, Config.hyprland?.gapsIn ?? 2);
+        hyprlandGapsInReady = true;
+    }
+
+    function updateHyprlandLayoutLive(rawValue) {
+        if (typeof rawValue === "string" && availableLayouts.includes(rawValue)) {
+            hyprlandLayout = rawValue;
+        } else {
+            hyprlandLayout = Config.hyprland?.layout ?? "dwindle";
+        }
+        hyprlandLayoutReady = true;
+    }
+
+    function refreshHyprlandBorderSize() {
+        borderSizeQueryProcess.running = false;
+        borderSizeQueryProcess.command = ["hyprctl", "getoption", "general:border_size", "-j"];
+        borderSizeQueryProcess.running = true;
+    }
+
+    function refreshHyprlandRounding() {
+        roundingQueryProcess.running = false;
+        roundingQueryProcess.command = ["hyprctl", "getoption", "decoration:rounding", "-j"];
+        roundingQueryProcess.running = true;
+    }
+
+    function refreshHyprlandGapsIn() {
+        gapsInQueryProcess.running = false;
+        gapsInQueryProcess.command = ["hyprctl", "getoption", "general:gaps_in", "-j"];
+        gapsInQueryProcess.running = true;
+    }
+
     function refreshHyprlandGapsOut() {
         gapsOutQueryProcess.running = false;
         gapsOutQueryProcess.command = ["hyprctl", "getoption", "general:gaps_out", "-j"];
         gapsOutQueryProcess.running = true;
+    }
+
+    function refreshHyprlandLayout() {
+        layoutQueryProcess.running = false;
+        layoutQueryProcess.command = ["hyprctl", "getoption", "general:layout", "-j"];
+        layoutQueryProcess.running = true;
+    }
+
+    function refreshManagedHyprlandValues() {
+        refreshHyprlandBorderSize();
+        refreshHyprlandRounding();
+        refreshHyprlandGapsIn();
+        refreshHyprlandGapsOut();
+        refreshHyprlandLayout();
+    }
+
+    function getEffectiveHyprlandBorderSize() {
+        return (Config.hyprland?.manageBorderSize ?? true) ? (Config.hyprland?.borderSize ?? 2) : hyprlandBorderSizeLive;
+    }
+
+    function getEffectiveHyprlandRounding() {
+        return (Config.hyprland?.manageRounding ?? true) ? (Config.hyprland?.rounding ?? 16) : hyprlandRoundingLive;
+    }
+
+    function getEffectiveHyprlandGapsIn() {
+        return (Config.hyprland?.manageGapsIn ?? true) ? (Config.hyprland?.gapsIn ?? 2) : hyprlandGapsInLive;
+    }
+
+    function getEffectiveHyprlandLayout() {
+        return (Config.hyprland?.manageLayout ?? true) ? (Config.hyprland?.layout ?? "dwindle") : hyprlandLayout;
     }
 
     function getEffectiveHyprlandGapsOut(side) {
@@ -141,19 +228,87 @@ Singleton {
             onRead: data => {
                 try {
                     const parsed = JSON.parse(data);
-                    if (parsed.str && root.availableLayouts.includes(parsed.str)) {
-                        root.hyprlandLayout = parsed.str;
-                        console.log("GlobalStates: Layout inicial desde Hyprland: " + parsed.str);
-                    }
+                    const rawValue = root._extractHyprlandOptionValue(parsed);
+                    root.updateHyprlandLayoutLive(rawValue);
+                    console.log("GlobalStates: Layout inicial desde Hyprland: " + root.hyprlandLayout);
                 } catch (e) {
                     console.warn("GlobalStates: Error parsing layout from hyprctl: " + e);
                 }
-                root.hyprlandLayoutReady = true;
             }
         }
         onExited: {
-            // Mark as ready even if parsing failed
-            root.hyprlandLayoutReady = true;
+            if (!root.hyprlandLayoutReady) {
+                root.updateHyprlandLayoutLive(Config.hyprland?.layout ?? "dwindle");
+            }
+        }
+    }
+
+    Process {
+        id: borderSizeQueryProcess
+        running: true
+        command: ["hyprctl", "getoption", "general:border_size", "-j"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    const parsed = JSON.parse(data);
+                    root.updateHyprlandBorderSizeLive(root._extractHyprlandOptionValue(parsed));
+                } catch (e) {
+                    console.warn("GlobalStates: Error parsing border_size from hyprctl: " + e);
+                }
+            }
+        }
+
+        onExited: {
+            if (!root.hyprlandBorderSizeReady) {
+                root.updateHyprlandBorderSizeLive(Config.hyprland?.borderSize ?? 2);
+            }
+        }
+    }
+
+    Process {
+        id: roundingQueryProcess
+        running: true
+        command: ["hyprctl", "getoption", "decoration:rounding", "-j"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    const parsed = JSON.parse(data);
+                    root.updateHyprlandRoundingLive(root._extractHyprlandOptionValue(parsed));
+                } catch (e) {
+                    console.warn("GlobalStates: Error parsing rounding from hyprctl: " + e);
+                }
+            }
+        }
+
+        onExited: {
+            if (!root.hyprlandRoundingReady) {
+                root.updateHyprlandRoundingLive(Config.hyprland?.rounding ?? 16);
+            }
+        }
+    }
+
+    Process {
+        id: gapsInQueryProcess
+        running: true
+        command: ["hyprctl", "getoption", "general:gaps_in", "-j"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    const parsed = JSON.parse(data);
+                    root.updateHyprlandGapsInLive(root._extractHyprlandOptionValue(parsed));
+                } catch (e) {
+                    console.warn("GlobalStates: Error parsing gaps_in from hyprctl: " + e);
+                }
+            }
+        }
+
+        onExited: {
+            if (!root.hyprlandGapsInReady) {
+                root.updateHyprlandGapsInLive(Config.hyprland?.gapsIn ?? 2);
+            }
         }
     }
 
@@ -166,7 +321,7 @@ Singleton {
             onRead: data => {
                 try {
                     const parsed = JSON.parse(data);
-                    const rawValue = parsed.custom ?? parsed.str ?? parsed.int;
+                    const rawValue = root._extractHyprlandOptionValue(parsed);
                     root.updateHyprlandGapsOutLive(rawValue);
                     console.log("GlobalStates: Gaps out inicial desde Hyprland: " + root.hyprlandGapsOutLive.raw);
                 } catch (e) {
@@ -548,10 +703,10 @@ Singleton {
 
     // Compositor config properties (Hyprland)
     readonly property var _compositorProps: [
-        "layout",
-        "syncBorderWidth", "borderSize",
-        "syncRoundness", "rounding",
-        "gapsIn", "gapsOut", "manageGapsOut",
+        "layout", "manageLayout",
+        "syncBorderWidth", "borderSize", "manageBorderSize",
+        "syncRoundness", "rounding", "manageRounding",
+        "gapsIn", "manageGapsIn", "gapsOut", "manageGapsOut",
         "borderAngle", "inactiveBorderAngle",
         "syncBorderColor", "activeBorderColor", "inactiveBorderColor",
         "shadowEnabled", "syncShadowColor", "syncShadowOpacity",

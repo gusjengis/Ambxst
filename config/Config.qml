@@ -655,15 +655,19 @@ Singleton {
             property var inactiveBorderColor: ["surface"]
             property int inactiveBorderAngle: 45
             property int borderSize: 2
+            property bool manageBorderSize: true
             property int rounding: 16
+            property bool manageRounding: true
             property bool syncRoundness: true
             property bool syncBorderWidth: false
             property bool syncBorderColor: false
             property bool syncShadowOpacity: false
             property bool syncShadowColor: false
             property int gapsIn: 2
+            property bool manageGapsIn: true
             property int gapsOut: 4
             property bool manageGapsOut: true
+            property bool manageLayout: true
             property string layout: "dwindle"
             property bool shadowEnabled: true
             property int shadowRange: 8

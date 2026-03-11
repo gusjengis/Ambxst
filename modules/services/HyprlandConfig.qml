@@ -78,6 +78,48 @@ QtObject {
         applyTimer.restart();
     }
 
+    function getManagedSettingDescriptors(activeColorFormatted, inactiveColorFormatted, shadowColorFormatted, shadowColorInactiveFormatted, workspaceCommand) {
+        return [
+            { key: "general:border_size", value: Config.hyprland.borderSize, managed: Config.hyprland.manageBorderSize ?? true },
+            { key: "general:gaps_in", value: Config.hyprland.gapsIn, managed: Config.hyprland.manageGapsIn ?? true },
+            { key: "general:gaps_out", value: Config.hyprland.gapsOut, managed: Config.hyprland.manageGapsOut ?? true },
+            { key: "general:col.active_border", value: activeColorFormatted, managed: true },
+            { key: "general:col.inactive_border", value: inactiveColorFormatted, managed: true },
+            { key: "general:layout", value: GlobalStates.hyprlandLayout, managed: Config.hyprland.manageLayout ?? true },
+            { key: "decoration:rounding", value: Config.hyprland.rounding, managed: Config.hyprland.manageRounding ?? true },
+            { key: "decoration:shadow:enabled", value: Config.hyprland.shadowEnabled, managed: true },
+            { key: "decoration:shadow:range", value: Config.hyprland.shadowRange, managed: true },
+            { key: "decoration:shadow:render_power", value: Config.hyprland.shadowRenderPower, managed: true },
+            { key: "decoration:shadow:sharp", value: Config.hyprland.shadowSharp, managed: true },
+            { key: "decoration:shadow:ignore_window", value: Config.hyprland.shadowIgnoreWindow, managed: true },
+            { key: "decoration:shadow:color", value: shadowColorFormatted, managed: true },
+            { key: "decoration:shadow:color_inactive", value: shadowColorInactiveFormatted, managed: true },
+            { key: "decoration:shadow:offset", value: Config.hyprland.shadowOffset, managed: true },
+            { key: "decoration:shadow:scale", value: Config.hyprland.shadowScale, managed: true },
+            { key: "decoration:blur:enabled", value: Config.hyprland.blurEnabled, managed: true },
+            { key: "decoration:blur:size", value: Config.hyprland.blurSize, managed: true },
+            { key: "decoration:blur:passes", value: Config.hyprland.blurPasses, managed: true },
+            { key: "decoration:blur:ignore_opacity", value: Config.hyprland.blurIgnoreOpacity, managed: true },
+            { key: "decoration:blur:new_optimizations", value: Config.hyprland.blurNewOptimizations, managed: true },
+            { key: "decoration:blur:xray", value: Config.hyprland.blurXray, managed: true },
+            { key: "decoration:blur:noise", value: Config.hyprland.blurNoise, managed: true },
+            { key: "decoration:blur:contrast", value: Config.hyprland.blurContrast, managed: true },
+            { key: "decoration:blur:brightness", value: Config.hyprland.blurBrightness, managed: true },
+            { key: "decoration:blur:vibrancy", value: Config.hyprland.blurVibrancy, managed: true },
+            { key: "decoration:blur:vibrancy_darkness", value: Config.hyprland.blurVibrancyDarkness, managed: true },
+            { key: "decoration:blur:special", value: Config.hyprland.blurSpecial, managed: true },
+            { key: "decoration:blur:popups", value: Config.hyprland.blurPopups, managed: true },
+            { key: "decoration:blur:popups_ignorealpha", value: Config.hyprland.blurPopupsIgnorealpha, managed: true },
+            { key: "decoration:blur:input_methods", value: Config.hyprland.blurInputMethods, managed: true },
+            { key: "decoration:blur:input_methods_ignorealpha", value: Config.hyprland.blurInputMethodsIgnorealpha, managed: true },
+            { raw: "keyword bezier myBezier,0.4,0.0,0.2,1.0", managed: true },
+            { raw: "keyword animation windows,1,2.5,myBezier,popin 80%", managed: true },
+            { raw: "keyword animation border,1,2.5,myBezier", managed: true },
+            { raw: "keyword animation fade,1,2.5,myBezier", managed: true },
+            { raw: workspaceCommand, managed: true }
+        ];
+    }
+
     function applyHyprlandConfigInternal() {
         // Ensure adapters are loaded before applying config.
         if (!Config.loader.loaded) {
@@ -167,50 +209,17 @@ QtObject {
             console.log(`HyprlandConfig: Auto ignorealpha calculated: ${ignoreAlphaValue} (bg: ${bgOpacity}, bar: ${barBgOpacity})`);
         }
 
-        let batchCommand = "";
-        batchCommand += `keyword general:border_size ${Config.hyprland.borderSize}`;
-        batchCommand += ` ; keyword general:gaps_in ${Config.hyprland.gapsIn}`;
-        if (Config.hyprland.manageGapsOut ?? true) {
-            batchCommand += ` ; keyword general:gaps_out ${Config.hyprland.gapsOut}`;
-        }
-        batchCommand += ` ; keyword general:col.active_border ${activeColorFormatted}`;
-        batchCommand += ` ; keyword general:col.inactive_border ${inactiveColorFormatted}`;
-        batchCommand += ` ; keyword general:layout ${GlobalStates.hyprlandLayout}`;
-        batchCommand += ` ; keyword decoration:rounding ${Config.hyprland.rounding}`;
-        batchCommand += ` ; keyword decoration:shadow:enabled ${Config.hyprland.shadowEnabled}`;
-        batchCommand += ` ; keyword decoration:shadow:range ${Config.hyprland.shadowRange}`;
-        batchCommand += ` ; keyword decoration:shadow:render_power ${Config.hyprland.shadowRenderPower}`;
-        batchCommand += ` ; keyword decoration:shadow:sharp ${Config.hyprland.shadowSharp}`;
-        batchCommand += ` ; keyword decoration:shadow:ignore_window ${Config.hyprland.shadowIgnoreWindow}`;
-        batchCommand += ` ; keyword decoration:shadow:color ${shadowColorFormatted}`;
-        batchCommand += ` ; keyword decoration:shadow:color_inactive ${shadowColorInactiveFormatted}`;
-        batchCommand += ` ; keyword decoration:shadow:offset ${Config.hyprland.shadowOffset}`;
-        batchCommand += ` ; keyword decoration:shadow:scale ${Config.hyprland.shadowScale}`;
-        batchCommand += ` ; keyword decoration:blur:enabled ${Config.hyprland.blurEnabled}`;
-        batchCommand += ` ; keyword decoration:blur:size ${Config.hyprland.blurSize}`;
-        batchCommand += ` ; keyword decoration:blur:passes ${Config.hyprland.blurPasses}`;
-        batchCommand += ` ; keyword decoration:blur:ignore_opacity ${Config.hyprland.blurIgnoreOpacity}`;
-        batchCommand += ` ; keyword decoration:blur:new_optimizations ${Config.hyprland.blurNewOptimizations}`;
-        batchCommand += ` ; keyword decoration:blur:xray ${Config.hyprland.blurXray}`;
-        batchCommand += ` ; keyword decoration:blur:noise ${Config.hyprland.blurNoise}`;
-        batchCommand += ` ; keyword decoration:blur:contrast ${Config.hyprland.blurContrast}`;
-        batchCommand += ` ; keyword decoration:blur:brightness ${Config.hyprland.blurBrightness}`;
-        batchCommand += ` ; keyword decoration:blur:vibrancy ${Config.hyprland.blurVibrancy}`;
-        batchCommand += ` ; keyword decoration:blur:vibrancy_darkness ${Config.hyprland.blurVibrancyDarkness}`;
-        batchCommand += ` ; keyword decoration:blur:special ${Config.hyprland.blurSpecial}`;
-        batchCommand += ` ; keyword decoration:blur:popups ${Config.hyprland.blurPopups}`;
-        batchCommand += ` ; keyword decoration:blur:popups_ignorealpha ${Config.hyprland.blurPopupsIgnorealpha}`;
-        batchCommand += ` ; keyword decoration:blur:input_methods ${Config.hyprland.blurInputMethods}`;
-        batchCommand += ` ; keyword decoration:blur:input_methods_ignorealpha ${Config.hyprland.blurInputMethodsIgnorealpha}`;
-        batchCommand += ` ; keyword bezier myBezier,0.4,0.0,0.2,1.0`;
-        batchCommand += ` ; keyword animation windows,1,2.5,myBezier,popin 80%`;
-        batchCommand += ` ; keyword animation border,1,2.5,myBezier`;
-        batchCommand += ` ; keyword animation fade,1,2.5,myBezier`;
-        batchCommand += ` ; ${workspaceCommand}`;
+        const batchParts = getManagedSettingDescriptors(activeColorFormatted, inactiveColorFormatted, shadowColorFormatted, shadowColorInactiveFormatted, workspaceCommand)
+            .filter(setting => setting.managed)
+            .map(setting => setting.raw ?? `keyword ${setting.key} ${setting.value}`);
         // Note: workspaceCommand is dynamically calculated based on current animations and orientation.
 
         console.log(`HyprlandConfig: Applying ignorealpha: ${ignoreAlphaValue}, explicit: ${Config.hyprland.blurExplicitIgnoreAlpha}`);
-        batchCommand += ` ; keyword layerrule noanim,quickshell ; keyword layerrule blur,quickshell ; keyword layerrule blurpopups,quickshell ; keyword layerrule ignorealpha ${ignoreAlphaValue},quickshell`;
+        batchParts.push(`keyword layerrule noanim,quickshell`);
+        batchParts.push(`keyword layerrule blur,quickshell`);
+        batchParts.push(`keyword layerrule blurpopups,quickshell`);
+        batchParts.push(`keyword layerrule ignorealpha ${ignoreAlphaValue},quickshell`);
+        const batchCommand = batchParts.join(" ; ");
         console.log("HyprlandConfig: Applying hyprctl batch command:", batchCommand);
         hyprctlProcess.command = ["hyprctl", "--batch", batchCommand];
         hyprctlProcess.running = true;
@@ -229,15 +238,42 @@ QtObject {
     property Connections hyprlandConfigConnections: Connections {
         target: Config.hyprland
         function onLayoutChanged() {
-            GlobalStates.setHyprlandLayout(Config.hyprland.layout);
+            if (Config.hyprland.manageLayout ?? true) {
+                GlobalStates.setHyprlandLayout(Config.hyprland.layout);
+                applyHyprlandConfig();
+            }
         }
         function onBorderSizeChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBorderSizeChanged() {
+            if (!(Config.hyprland.manageBorderSize ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onRoundingChanged() {
             applyHyprlandConfig();
         }
+        function onManageRoundingChanged() {
+            if (!(Config.hyprland.manageRounding ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onGapsInChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageGapsInChanged() {
+            if (!(Config.hyprland.manageGapsIn ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onGapsOutChanged() {
@@ -249,6 +285,15 @@ QtObject {
                 return;
             }
 
+            applyHyprlandConfig();
+        }
+        function onManageLayoutChanged() {
+            if (!(Config.hyprland.manageLayout ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            GlobalStates.setHyprlandLayout(Config.hyprland.layout);
             applyHyprlandConfig();
         }
         function onActiveBorderColorChanged() {
@@ -412,14 +457,14 @@ QtObject {
         function onRawEvent(event) {
             if (event.name === "configreloaded") {
                 console.log("HyprlandConfig: Detectado configreloaded, reaplicando configuración...");
-                GlobalStates.refreshHyprlandGapsOut();
+                GlobalStates.refreshManagedHyprlandValues();
                 applyHyprlandConfig();
             }
         }
     }
 
     Component.onCompleted: {
-        GlobalStates.refreshHyprlandGapsOut();
+        GlobalStates.refreshManagedHyprlandValues();
         // Apply immediately if Config is already loaded.
         if (Config.loader.loaded) {
             applyHyprlandConfig();

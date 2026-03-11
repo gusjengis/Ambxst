@@ -345,9 +345,8 @@ Item {
     component ManagedNumberInputRow: StyledRect {
         id: managedRow
         property string label: ""
-        property string managedText: "AMBXST"
-        property string unmanagedText: "Compositor"
         property bool checked: true
+        property bool valueEnabled: checked
         property int value: 0
         property int minValue: 0
         property int maxValue: 100
@@ -360,7 +359,7 @@ Item {
         height: 56
         radius: Styling.radius(-2)
         enableShadow: true
-        opacity: checked ? 1.0 : 0.5
+        opacity: valueEnabled ? 1.0 : 0.5
 
         HoverHandler {
             id: rowMouse
@@ -450,7 +449,7 @@ Item {
                 Layout.preferredWidth: 76
                 Layout.preferredHeight: 28
                 radius: Styling.radius(-4)
-                opacity: managedRow.checked ? 1.0 : 0.75
+                opacity: managedRow.valueEnabled ? 1.0 : 0.75
 
                 RowLayout {
                     anchors.fill: parent
@@ -469,7 +468,7 @@ Item {
                         clip: true
                         verticalAlignment: TextInput.AlignVCenter
                         horizontalAlignment: TextInput.AlignHCenter
-                        enabled: managedRow.checked
+                        enabled: managedRow.valueEnabled
                         validator: IntValidator {
                             bottom: managedRow.minValue
                             top: managedRow.maxValue
@@ -520,6 +519,156 @@ Item {
             }
         }
 
+    }
+
+    component ManagedChoiceRow: StyledRect {
+        id: managedChoiceRow
+        property string label: ""
+        property bool checked: true
+        property bool valueEnabled: checked
+        property string valueText: ""
+        signal toggled(bool checked)
+        signal valueActivated()
+
+        variant: choiceHover.hovered ? "focus" : "common"
+        Layout.fillWidth: true
+        height: 56
+        radius: Styling.radius(-2)
+        enableShadow: true
+        opacity: valueEnabled ? 1.0 : 0.5
+
+        HoverHandler {
+            id: choiceHover
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
+            spacing: 12
+
+            Item {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+
+                Item {
+                    anchors.fill: parent
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !managedChoiceRow.checked
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedChoiceRow.checked
+                        opacity: managedChoiceRow.checked ? 1.0 : 0.0
+
+                        Behavior on opacity {
+                            enabled: Config.animDuration > 0
+                            NumberAnimation {
+                                duration: Config.animDuration / 2
+                                easing.type: Easing.OutQuart
+                            }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 16
+                            scale: managedChoiceRow.checked ? 1.0 : 0.0
+
+                            Behavior on scale {
+                                enabled: Config.animDuration > 0
+                                NumberAnimation {
+                                    duration: Config.animDuration / 2
+                                    easing.type: Easing.OutBack
+                                    easing.overshoot: 1.5
+                                }
+                            }
+                        }
+                    }
+                }
+
+                StyledToolTip {
+                    tooltipText: managedChoiceRow.checked ? "Managed by Ambxst" : "Managed by Compositor"
+                    show: choiceCheckboxArea.containsMouse
+                }
+            }
+
+            Text {
+                text: managedChoiceRow.label
+                font.family: Config.theme.font
+                font.pixelSize: Styling.fontSize(0)
+                font.weight: Font.Medium
+                color: Colors.overBackground
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
+
+            StyledRect {
+                variant: "internalbg"
+                Layout.preferredWidth: layoutValueText.implicitWidth + layoutValueIcon.implicitWidth + 30
+                Layout.preferredHeight: 28
+                radius: Styling.radius(-4)
+                opacity: managedChoiceRow.valueEnabled ? 1.0 : 0.75
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    spacing: 6
+
+                    Text {
+                        id: layoutValueText
+                        text: managedChoiceRow.valueText
+                        font.family: Config.theme.font
+                        font.pixelSize: Styling.fontSize(-1)
+                        font.weight: Font.Medium
+                        color: Styling.srItem("overprimary")
+                    }
+
+                    Text {
+                        id: layoutValueIcon
+                        text: Icons.caretRight
+                        font.family: Icons.font
+                        font.pixelSize: 12
+                        color: Colors.overSurfaceVariant
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: managedChoiceRow.valueEnabled
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: managedChoiceRow.valueActivated()
+                }
+            }
+        }
+
+        MouseArea {
+            id: choiceCheckboxArea
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            z: 1
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: mouse => {
+                managedChoiceRow.toggled(!managedChoiceRow.checked);
+                mouse.accepted = true;
+            }
+        }
     }
 
     // Inline component for decimal input rows
@@ -960,6 +1109,29 @@ Item {
                                 Layout.bottomMargin: -4
                             }
 
+                            ManagedChoiceRow {
+                                label: "Layout"
+                                checked: Config.hyprland.manageLayout ?? true
+                                valueText: GlobalStates.getEffectiveHyprlandLayout()
+                                valueEnabled: Config.hyprland.manageLayout ?? true
+                                onValueActivated: {
+                                    const layouts = GlobalStates.availableLayouts;
+                                    const currentIndex = layouts.indexOf(Config.hyprland.layout);
+                                    const nextIndex = (currentIndex + 1) % layouts.length;
+                                    const nextLayout = layouts[nextIndex];
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.layout = nextLayout;
+                                    GlobalStates.setHyprlandLayout(nextLayout);
+                                }
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageLayout = checked;
+                                    if (checked) {
+                                        GlobalStates.setHyprlandLayout(Config.hyprland.layout);
+                                    }
+                                }
+                            }
+
                             ToggleRow {
                                 label: "Sync Border Size"
                                 checked: Config.hyprland.syncBorderWidth ?? false
@@ -969,16 +1141,21 @@ Item {
                                 }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Border Size"
-                                value: Config.hyprland.borderSize ?? 2
+                                checked: Config.hyprland.manageBorderSize ?? true
+                                valueEnabled: (Config.hyprland.manageBorderSize ?? true) && !(Config.hyprland.syncBorderWidth ?? false)
+                                value: GlobalStates.getEffectiveHyprlandBorderSize()
                                 minValue: 0
                                 maxValue: 999
                                 suffix: "px"
-                                enabled: !Config.hyprland.syncBorderWidth
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.borderSize = newValue;
+                                }
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBorderSize = checked;
                                 }
                             }
 
@@ -991,22 +1168,29 @@ Item {
                                 }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Rounding"
-                                value: Config.hyprland.rounding ?? 16
+                                checked: Config.hyprland.manageRounding ?? true
+                                valueEnabled: (Config.hyprland.manageRounding ?? true) && !(Config.hyprland.syncRoundness ?? false)
+                                value: GlobalStates.getEffectiveHyprlandRounding()
                                 minValue: 0
                                 maxValue: 999
                                 suffix: "px"
-                                enabled: !Config.hyprland.syncRoundness
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.rounding = newValue;
                                 }
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageRounding = checked;
+                                }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Gaps In"
-                                value: Config.hyprland.gapsIn ?? 5
+                                checked: Config.hyprland.manageGapsIn ?? true
+                                valueEnabled: Config.hyprland.manageGapsIn ?? true
+                                value: GlobalStates.getEffectiveHyprlandGapsIn()
                                 minValue: 0
                                 maxValue: 50
                                 suffix: "px"
@@ -1014,12 +1198,17 @@ Item {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.gapsIn = newValue;
                                 }
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageGapsIn = checked;
+                                }
                             }
 
                             ManagedNumberInputRow {
                                 label: "Gaps Out"
                                 checked: Config.hyprland.manageGapsOut ?? true
-                                value: Config.hyprland.gapsOut ?? 10
+                                valueEnabled: Config.hyprland.manageGapsOut ?? true
+                                value: GlobalStates.getEffectiveHyprlandGapsOut("top")
                                 minValue: 0
                                 maxValue: 50
                                 suffix: "px"
