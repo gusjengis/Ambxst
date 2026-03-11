@@ -193,11 +193,6 @@ Item {
             Layout.fillWidth: true
             implicitHeight: labelText.implicitHeight
 
-            HoverHandler {
-                id: labelHover
-                enabled: numberInputRowRoot.showManagementToggle
-            }
-
             Text {
                 id: labelText
                 anchors.verticalCenter: parent.verticalCenter
@@ -209,35 +204,88 @@ Item {
                     : Colors.overBackground
                 opacity: numberInputRowRoot.showManagementToggle && !numberInputRowRoot.managementChecked ? 0.65 : 1.0
             }
+        }
 
-            Rectangle {
-                anchors.left: labelText.left
-                anchors.right: labelText.right
-                anchors.top: labelText.bottom
-                anchors.topMargin: 1
-                height: 1
-                color: Colors.overSurfaceVariant
-                opacity: numberInputRowRoot.showManagementToggle && labelHover.hovered ? 0.35 : 0.0
+        Item {
+            id: managementBadge
+            visible: numberInputRowRoot.showManagementToggle
+            Layout.preferredHeight: 32
+            Layout.preferredWidth: managementContent.implicitWidth
 
-                Behavior on opacity {
-                    enabled: Config.animDuration > 0
-                    NumberAnimation {
-                        duration: Config.animDuration / 3
+            RowLayout {
+                id: managementContent
+                anchors.fill: parent
+                spacing: 6
+
+                Item {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !numberInputRowRoot.managementChecked
                     }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: numberInputRowRoot.managementChecked
+                        opacity: numberInputRowRoot.managementChecked ? 1.0 : 0.0
+
+                        Behavior on opacity {
+                            enabled: Config.animDuration > 0
+                            NumberAnimation {
+                                duration: Config.animDuration / 2
+                                easing.type: Easing.OutQuart
+                            }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 14
+                            scale: numberInputRowRoot.managementChecked ? 1.0 : 0.0
+
+                            Behavior on scale {
+                                enabled: Config.animDuration > 0
+                                NumberAnimation {
+                                    duration: Config.animDuration / 2
+                                    easing.type: Easing.OutBack
+                                    easing.overshoot: 1.5
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    text: numberInputRowRoot.managementChecked ? "AMBXST" : "Compositor"
+                    font.family: Config.theme.font
+                    font.pixelSize: Styling.fontSize(-2)
+                    font.weight: Font.Medium
+                    color: numberInputRowRoot.managementChecked ? Colors.overBackground : Colors.overSurfaceVariant
+                    opacity: numberInputRowRoot.managementChecked ? 1.0 : 0.85
                 }
             }
 
             MouseArea {
+                id: managementBadgeMouse
                 anchors.fill: parent
-                enabled: numberInputRowRoot.showManagementToggle
                 hoverEnabled: true
-                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                cursorShape: Qt.PointingHandCursor
                 onClicked: numberInputRowRoot.managementToggled(!numberInputRowRoot.managementChecked)
             }
 
             StyledToolTip {
-                tooltipText: "Click to toggle whether Ambxst manages this setting."
-                show: numberInputRowRoot.showManagementToggle && labelHover.hovered
+                tooltipText: numberInputRowRoot.managementChecked
+                    ? "AMBXST manages this setting. Click to let the compositor manage it instead."
+                    : "The compositor manages this setting. Click to let AMBXST manage it instead."
+                show: managementBadgeMouse.containsMouse
             }
         }
 
@@ -290,6 +338,186 @@ Item {
             font.pixelSize: Styling.fontSize(0)
             color: Colors.overSurfaceVariant
             visible: suffix !== ""
+        }
+
+    }
+
+    component ManagedNumberInputRow: StyledRect {
+        id: managedRow
+        property string label: ""
+        property string managedText: "AMBXST"
+        property string unmanagedText: "Compositor"
+        property bool checked: true
+        property int value: 0
+        property int minValue: 0
+        property int maxValue: 100
+        property string suffix: ""
+        signal toggled(bool checked)
+        signal valueEdited(int newValue)
+
+        variant: rowMouse.containsMouse ? "focus" : "common"
+        Layout.fillWidth: true
+        height: 56
+        radius: Styling.radius(-2)
+        enableShadow: true
+        opacity: checked ? 1.0 : 0.5
+
+        HoverHandler {
+            id: rowMouse
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
+            spacing: 12
+
+            Item {
+                id: checkboxContainer
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+
+                Item {
+                    anchors.fill: parent
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !managedRow.checked
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedRow.checked
+                        opacity: managedRow.checked ? 1.0 : 0.0
+
+                        Behavior on opacity {
+                            enabled: Config.animDuration > 0
+                            NumberAnimation {
+                                duration: Config.animDuration / 2
+                                easing.type: Easing.OutQuart
+                            }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 16
+                            scale: managedRow.checked ? 1.0 : 0.0
+
+                            Behavior on scale {
+                                enabled: Config.animDuration > 0
+                                NumberAnimation {
+                                    duration: Config.animDuration / 2
+                                    easing.type: Easing.OutBack
+                                    easing.overshoot: 1.5
+                                }
+                            }
+                        }
+                    }
+                }
+
+                StyledToolTip {
+                    tooltipText: managedRow.checked ? "Managed by Ambxst" : "Managed by Compositor"
+                    show: checkboxClickArea.containsMouse
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                Text {
+                    text: managedRow.label
+                    font.family: Config.theme.font
+                    font.pixelSize: Styling.fontSize(0)
+                    font.weight: Font.Medium
+                    color: Colors.overBackground
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+            }
+
+            StyledRect {
+                variant: "internalbg"
+                Layout.preferredWidth: 76
+                Layout.preferredHeight: 28
+                radius: Styling.radius(-4)
+                opacity: managedRow.checked ? 1.0 : 0.75
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    spacing: 4
+
+                    TextInput {
+                        id: managedNumberInput
+                        Layout.fillWidth: true
+                        font.family: Config.theme.font
+                        font.pixelSize: Styling.fontSize(-1)
+                        font.weight: Font.Medium
+                        color: Styling.srItem("overprimary")
+                        selectByMouse: true
+                        clip: true
+                        verticalAlignment: TextInput.AlignVCenter
+                        horizontalAlignment: TextInput.AlignHCenter
+                        enabled: managedRow.checked
+                        validator: IntValidator {
+                            bottom: managedRow.minValue
+                            top: managedRow.maxValue
+                        }
+
+                        readonly property int configValue: managedRow.value
+                        onConfigValueChanged: {
+                            if (!activeFocus && text !== configValue.toString()) {
+                                text = configValue.toString();
+                            }
+                        }
+                        Component.onCompleted: text = configValue.toString()
+
+                        onEditingFinished: {
+                            let newVal = parseInt(text);
+                            if (!isNaN(newVal)) {
+                                newVal = Math.max(managedRow.minValue, Math.min(managedRow.maxValue, newVal));
+                                managedRow.valueEdited(newVal);
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: managedRow.suffix
+                        font.family: Config.theme.font
+                        font.pixelSize: Styling.fontSize(-2)
+                        font.weight: Font.Medium
+                        color: Colors.overSurfaceVariant
+                        visible: managedRow.suffix !== ""
+                    }
+                }
+            }
+        }
+
+        MouseArea {
+            id: checkboxClickArea
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            z: 1
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: mouse => {
+                managedRow.toggled(!managedRow.checked);
+                mouse.accepted = true;
+            }
         }
 
     }
@@ -788,20 +1016,18 @@ Item {
                                 }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Gaps Out"
+                                checked: Config.hyprland.manageGapsOut ?? true
                                 value: Config.hyprland.gapsOut ?? 10
                                 minValue: 0
                                 maxValue: 50
                                 suffix: "px"
-                                showManagementToggle: true
-                                managementChecked: Config.hyprland.manageGapsOut ?? true
-                                inputEnabled: Config.hyprland.manageGapsOut ?? true
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.gapsOut = newValue;
                                 }
-                                onManagementToggled: checked => {
+                                onToggled: checked => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.manageGapsOut = checked;
                                 }
