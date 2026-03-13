@@ -221,6 +221,149 @@ Item {
         }
     }
 
+    component ManagedVisibilityRow: StyledRect {
+        id: managedVisibilityRow
+        property string label: ""
+        property bool managedChecked: true
+        property bool visibleChecked: true
+        signal managementToggled(bool checked)
+        signal visibilityToggled(bool checked)
+
+        variant: rowHover.hovered ? "focus" : "common"
+        Layout.fillWidth: true
+        Layout.preferredHeight: 56
+        radius: Styling.radius(-2)
+        enableShadow: true
+        opacity: managedChecked ? 1.0 : 0.55
+
+        HoverHandler {
+            id: rowHover
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
+            spacing: 12
+
+            Item {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+
+                Item {
+                    anchors.fill: parent
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !managedVisibilityRow.managedChecked
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedVisibilityRow.managedChecked
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+
+                StyledToolTip {
+                    tooltipText: managedVisibilityRow.managedChecked ? "Managed by Ambxst" : "Managed by Compositor"
+                    show: managementClickArea.containsMouse
+                }
+            }
+
+            Text {
+                text: managedVisibilityRow.label
+                font.family: Config.theme.font
+                font.pixelSize: Styling.fontSize(0)
+                font.weight: Font.Medium
+                color: Colors.overBackground
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+
+            RowLayout {
+                spacing: 8
+
+                Text {
+                    text: "Show"
+                    font.family: Config.theme.font
+                    font.pixelSize: Styling.fontSize(-1)
+                    color: Colors.overSurfaceVariant
+                    opacity: managedVisibilityRow.managedChecked ? 1.0 : 0.7
+                }
+
+                Item {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        border.width: 1
+                        border.color: Colors.outline
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedVisibilityRow.visibleChecked
+                        opacity: managedVisibilityRow.visibleChecked ? 1.0 : 0.0
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 14
+                        }
+                    }
+
+                    MouseArea {
+                        id: visibilityClickArea
+                        anchors.fill: parent
+                        enabled: managedVisibilityRow.managedChecked
+                        hoverEnabled: true
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        onClicked: managedVisibilityRow.visibilityToggled(!managedVisibilityRow.visibleChecked)
+                    }
+
+                    StyledToolTip {
+                        tooltipText: managedVisibilityRow.visibleChecked ? "Layout button shown" : "Layout button hidden"
+                        show: visibilityClickArea.containsMouse && managedVisibilityRow.managedChecked
+                    }
+                }
+            }
+        }
+
+        MouseArea {
+            id: managementClickArea
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            z: 1
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: managedVisibilityRow.managementToggled(!managedVisibilityRow.managedChecked)
+        }
+    }
+
     // Inline component for number input rows
     component NumberInputRow: RowLayout {
         id: numberInputRowRoot
@@ -796,14 +939,32 @@ Item {
                             }
                         }
 
-                        ToggleRow {
-                            label: "Show Layout Button"
-                            checked: Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true
-                            onToggled: value => {
-                                if (value !== (Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true)) {
+                        ManagedVisibilityRow {
+                            label: "Layout Button"
+                            managedChecked: Config.hyprland.manageLayout ?? true
+                            visibleChecked: Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true
+                            onManagementToggled: checked => {
+                                if (checked !== (Config.hyprland.manageLayout ?? true)) {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageLayout = checked;
+                                }
+                            }
+                            onVisibilityToggled: checked => {
+                                if (checked !== (Config.bar.showLayoutButton ?? Config.bar.showLayoutSwitchButton ?? true)) {
                                     GlobalStates.markShellChanged();
-                                    Config.bar.showLayoutButton = value;
-                                    Config.bar.showLayoutSwitchButton = value;
+                                    Config.bar.showLayoutButton = checked;
+                                    Config.bar.showLayoutSwitchButton = checked;
+                                }
+                            }
+                        }
+
+                        ToggleRow {
+                            label: "Show Preset Button"
+                            checked: Config.bar.showPresetButton ?? true
+                            onToggled: value => {
+                                if (value !== Config.bar.showPresetButton) {
+                                    GlobalStates.markShellChanged();
+                                    Config.bar.showPresetButton = value;
                                 }
                             }
                         }

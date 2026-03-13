@@ -22,6 +22,7 @@ Item {
 
     // Popup visibility state (tracks intent, not animation)
     property bool popupOpen: layoutPopup.isOpen
+    readonly property bool layoutManaged: Config.hyprland?.manageLayout ?? true
 
     Layout.preferredWidth: 36
     Layout.preferredHeight: 36
@@ -97,13 +98,17 @@ Item {
         MouseArea {
             anchors.fill: parent
             hoverEnabled: false
-            cursorShape: Qt.PointingHandCursor
-            onClicked: layoutPopup.toggle()
+            cursorShape: root.layoutManaged ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: {
+                if (root.layoutManaged) {
+                    layoutPopup.toggle();
+                }
+            }
         }
 
         StyledToolTip {
             visible: root.isHovered && !root.popupOpen
-            tooltipText: "Layout: " + root.getLayoutDisplayName(GlobalStates.hyprlandLayout)
+            tooltipText: root.layoutManaged ? ("Layout: " + root.getLayoutDisplayName(GlobalStates.hyprlandLayout)) : "Managed by Compositor"
         }
     }
 
@@ -180,16 +185,27 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
+                        cursorShape: root.layoutManaged ? Qt.PointingHandCursor : Qt.ArrowCursor
 
                         onEntered: layoutButton.buttonHovered = true
                         onExited: layoutButton.buttonHovered = false
 
                         onClicked: {
-                            GlobalStates.setHyprlandLayout(layoutButton.modelData);
+                            if (root.layoutManaged) {
+                                GlobalStates.setHyprlandLayout(layoutButton.modelData);
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    Connections {
+        target: Config.hyprland
+        function onManageLayoutChanged() {
+            if (!(Config.hyprland?.manageLayout ?? true) && layoutPopup.isOpen) {
+                layoutPopup.close();
             }
         }
     }

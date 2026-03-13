@@ -102,7 +102,8 @@ Item {
     readonly property real outerRadius: Styling.radius(0)
     readonly property real innerRadius: (Config.bar.pillStyle === "squished") ? Styling.radius(0) / 2 : Styling.radius(0)
     readonly property bool pinButtonVisible: Config.bar?.showPinButton ?? true
-    readonly property bool layoutButtonVisible: Config.bar?.showLayoutButton ?? Config.bar?.showLayoutSwitchButton ?? true
+    readonly property bool presetButtonVisible: Config.bar?.showPresetButton ?? true
+    readonly property bool layoutButtonVisible: (Config.hyprland?.manageLayout ?? true) && (Config.bar?.showLayoutButton ?? Config.bar?.showLayoutSwitchButton ?? true)
 
     // Reveal logic
     readonly property bool reveal: {
@@ -513,6 +514,7 @@ Item {
 
                         PresetsButton {
                             id: presetsButton
+                            visible: root.presetButtonVisible
                             startRadius: root.dockAtEnd ? root.innerRadius : root.outerRadius
                             endRadius: root.innerRadius
                             enableShadow: root.shadowsEnabled
@@ -598,6 +600,7 @@ Item {
 
                         PresetsButton {
                             id: presetsButtonVert
+                            visible: root.presetButtonVisible
                             startRadius: root.innerRadius
                             endRadius: root.outerRadius
                             vertical: true

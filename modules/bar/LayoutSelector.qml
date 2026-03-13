@@ -18,6 +18,7 @@ StyledRect {
     readonly property int spacing: 2
     readonly property int padding: 2
     readonly property int totalButtons: GlobalStates.availableLayouts.length
+    readonly property bool layoutManaged: Config.hyprland?.manageLayout ?? true
 
     // For vertical mode, reverse the order
     readonly property var displayLayouts: orientation === "vertical" ? GlobalStates.availableLayouts.slice().reverse() : GlobalStates.availableLayouts
@@ -120,13 +121,17 @@ StyledRect {
                         }
                     }
 
+                    cursorShape: root.layoutManaged ? Qt.PointingHandCursor : Qt.ArrowCursor
+
                     onClicked: {
-                        GlobalStates.setHyprlandLayout(modelData);
+                        if (root.layoutManaged) {
+                            GlobalStates.setHyprlandLayout(modelData);
+                        }
                     }
 
                     StyledToolTip {
                         visible: parent.hovered
-                        tooltipText: root.getLayoutDisplayName(modelData)
+                        tooltipText: root.layoutManaged ? root.getLayoutDisplayName(modelData) : "Managed by Compositor"
                     }
                 }
             }
@@ -174,13 +179,17 @@ StyledRect {
                         }
                     }
 
+                    cursorShape: root.layoutManaged ? Qt.PointingHandCursor : Qt.ArrowCursor
+
                     onClicked: {
-                        GlobalStates.setHyprlandLayout(modelData);
+                        if (root.layoutManaged) {
+                            GlobalStates.setHyprlandLayout(modelData);
+                        }
                     }
 
                     StyledToolTip {
                         visible: parent.hovered
-                        tooltipText: root.getLayoutDisplayName(modelData)
+                        tooltipText: root.layoutManaged ? root.getLayoutDisplayName(modelData) : "Managed by Compositor"
                     }
                 }
             }
