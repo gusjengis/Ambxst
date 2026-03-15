@@ -959,6 +959,39 @@ Item {
                         }
 
                         ToggleRow {
+                            label: "Show Special Workspaces"
+                            checked: Config.bar.showSpecialWorkspaces ?? true
+                            onToggled: value => {
+                                if (value !== Config.bar.showSpecialWorkspaces) {
+                                    GlobalStates.markShellChanged();
+                                    Config.bar.showSpecialWorkspaces = value;
+                                }
+                            }
+                        }
+
+                        SelectorRow {
+                            label: "Special Workspace Display"
+                            options: [
+                                {
+                                    label: "Icons",
+                                    value: "icons"
+                                },
+                                {
+                                    label: "Names",
+                                    value: "names"
+                                }
+                            ]
+                            value: Config.bar.specialWorkspacesDisplay ?? "icons"
+                            visible: Config.bar.showSpecialWorkspaces ?? true
+                            onValueSelected: newValue => {
+                                if (newValue !== Config.bar.specialWorkspacesDisplay) {
+                                    GlobalStates.markShellChanged();
+                                    Config.bar.specialWorkspacesDisplay = newValue;
+                                }
+                            }
+                        }
+
+                        ToggleRow {
                             label: "Show Preset Button"
                             checked: Config.bar.showPresetButton ?? true
                             onToggled: value => {

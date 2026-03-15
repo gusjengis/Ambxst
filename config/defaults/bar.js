@@ -16,6 +16,8 @@ var data = {
     "hoverToReveal": true,
     "hoverRegionHeight": 8,
     "showPinButton": true,
+    "showSpecialWorkspaces": true,
+    "specialWorkspacesDisplay": "icons",
     "showPresetButton": true,
     "showLayoutButton": true,
     "availableOnFullscreen": false,

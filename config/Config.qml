@@ -505,6 +505,8 @@ Singleton {
             property bool hoverToReveal: true
             property int hoverRegionHeight: 8
             property bool showPinButton: true
+            property bool showSpecialWorkspaces: true
+            property string specialWorkspacesDisplay: "icons"
             property bool showPresetButton: true
             property bool availableOnFullscreen: false
             property bool use12hFormat: false

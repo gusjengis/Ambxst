@@ -102,6 +102,7 @@ Item {
     readonly property real outerRadius: Styling.radius(0)
     readonly property real innerRadius: (Config.bar.pillStyle === "squished") ? Styling.radius(0) / 2 : Styling.radius(0)
     readonly property bool pinButtonVisible: Config.bar?.showPinButton ?? true
+    readonly property bool specialWorkspacesEnabled: Config.bar?.showSpecialWorkspaces ?? true
     readonly property bool presetButtonVisible: Config.bar?.showPresetButton ?? true
     readonly property bool layoutButtonVisible: (Config.hyprland?.manageLayout ?? true) && (Config.bar?.showLayoutButton ?? Config.bar?.showLayoutSwitchButton ?? true)
 
@@ -378,12 +379,26 @@ Item {
                         }
 
                         Workspaces {
+                            id: workspacesHorizontal
+                            orientation: root.orientation
+                            bar: QtObject {
+                                property var screen: root.screen
+                            }
+                            startRadius: root.innerRadius
+                            endRadius: (specialWorkspacesHorizontal.visible || root.layoutButtonVisible || root.pinButtonVisible || root.dockAtStart) ? root.innerRadius : root.outerRadius
+                        }
+
+                        SpecialWorkspaces {
+                            id: specialWorkspacesHorizontal
+                            visible: root.specialWorkspacesEnabled && hasSpecialWorkspaces
                             orientation: root.orientation
                             bar: QtObject {
                                 property var screen: root.screen
                             }
                             startRadius: root.innerRadius
                             endRadius: (root.layoutButtonVisible || root.pinButtonVisible || root.dockAtStart) ? root.innerRadius : root.outerRadius
+                            innerRadius: root.innerRadius
+                            enableShadow: root.shadowsEnabled
                         }
 
                         LayoutSelectorButton {
@@ -657,7 +672,21 @@ Item {
                                     }
                                     Layout.alignment: Qt.AlignHCenter
                                     startRadius: root.layoutButtonVisible ? root.innerRadius : root.outerRadius
+                                    endRadius: (specialWorkspacesVert.visible || root.pinButtonVisible || root.integratedDockEnabled) ? root.innerRadius : root.outerRadius
+                                }
+
+                                SpecialWorkspaces {
+                                    id: specialWorkspacesVert
+                                    visible: root.specialWorkspacesEnabled && hasSpecialWorkspaces
+                                    orientation: root.orientation
+                                    bar: QtObject {
+                                        property var screen: root.screen
+                                    }
+                                    Layout.alignment: Qt.AlignHCenter
+                                    startRadius: root.innerRadius
                                     endRadius: (root.pinButtonVisible || root.integratedDockEnabled) ? root.innerRadius : root.outerRadius
+                                    innerRadius: root.innerRadius
+                                    enableShadow: root.shadowsEnabled
                                 }
 
                                 // Pin button (vertical)
