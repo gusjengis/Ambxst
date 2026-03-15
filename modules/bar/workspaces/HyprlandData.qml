@@ -54,6 +54,11 @@ Singleton {
         target: Hyprland
 
         function onRawEvent(event) {
+            if (event.name === "activespecial") {
+                getMonitors.running = true
+                return
+            }
+
             // Only request full update for critical events
             let ignoreList = [
                 "activewindow", "focusedmon", "monitoradded", 
