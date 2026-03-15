@@ -27,25 +27,11 @@ Item {
     readonly property var screenVisibilities: Visibilities.getForScreen(screen.name)
     readonly property bool isScreenFocused: Hyprland.focusedMonitor && Hyprland.focusedMonitor.name === screen.name
 
-    // Monitor reference and refrence to toplevels on monitor
+    // Monitor reference on this screen
     readonly property var hyprlandMonitor: Hyprland.monitorFor(screen)
-    readonly property var toplevels: hyprlandMonitor.activeWorkspace.toplevels.values
 
     // Check if there are any windows on the current monitor and workspace
-    readonly property bool hasWindows: {
-        if (!hyprlandMonitor) return false;
-        const activeWorkspaceId = hyprlandMonitor.activeWorkspace.id;
-        const monId = hyprlandMonitor.id;
-        const wins = HyprlandData.windowList;
-        for (let i = 0; i < wins.length; i++) {
-            // We only care about windows on the current monitor and workspace
-            // that are not floating (floating windows usually don't trigger auto-hide)
-            if (wins[i].monitor === monId && wins[i].workspace.id === activeWorkspaceId && !wins[i].floating) {
-                return true;
-            }
-        }
-        return false;
-    }
+    readonly property bool hasWindows: HyprlandData.monitorHasVisibleTiledWindows(hyprlandMonitor)
 
     // Get the bar position for this screen
     readonly property string barPosition: Config.bar?.position ?? "top"
@@ -74,19 +60,7 @@ Item {
         return false;
     }
 
-    // Fullscreen detection - check if active toplevel is fullscreen on this screen
-    readonly property bool activeWindowFullscreen: {
-        if (!hyprlandMonitor || !toplevels) return false;
-
-        // Check all toplevels on active workspcace
-        for (var i = 0; i < toplevels.length; i++) {
-            // Checks first if the wayland handle is ready
-            if (toplevels[i].wayland && toplevels[i].wayland.fullscreen == true) {
-               return true;
-            }
-        }
-        return false;
-    }
+    readonly property bool activeWindowFullscreen: HyprlandData.monitorHasFullscreenWindow(hyprlandMonitor)
 
     // Should auto-hide logic:
     // 1. If notch and bar are on different sides: hide if keepHidden is ON, OR if windows/fullscreen are present

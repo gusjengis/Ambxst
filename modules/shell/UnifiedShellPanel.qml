@@ -75,28 +75,7 @@ PanelWindow {
     readonly property bool unifiedEffectActive: false // Flag to notify children to disable internal borders
 
     readonly property var hyprlandMonitor: Hyprland.monitorFor(targetScreen)
-    readonly property bool hasFullscreenWindow: {
-        if (!hyprlandMonitor)
-            return false;
-
-        const activeWorkspaceId = hyprlandMonitor.activeWorkspace.id;
-        const monId = hyprlandMonitor.id;
-
-        // Check active toplevel first (fast path)
-        const toplevel = ToplevelManager.activeToplevel;
-        if (toplevel && toplevel.fullscreen && Hyprland.focusedMonitor.id === monId) {
-            return true;
-        }
-
-        // Check all windows on this monitor (robust path)
-        const wins = HyprlandData.windowList;
-        for (let i = 0; i < wins.length; i++) {
-            if (wins[i].monitor === monId && wins[i].fullscreen && wins[i].workspace.id === activeWorkspaceId) {
-                return true;
-            }
-        }
-        return false;
-    }
+    readonly property bool hasFullscreenWindow: HyprlandData.monitorHasFullscreenWindow(hyprlandMonitor)
 
     // Proxy properties for Bar/Notch synchronization
     // Note: BarContent and NotchContent already handle their internal sync using Visibilities.

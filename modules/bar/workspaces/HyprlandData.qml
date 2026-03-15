@@ -30,6 +30,71 @@ Singleton {
         updateDebounce.restart()
     }
 
+    function getMonitorDataById(monitorId) {
+        for (let i = 0; i < root.monitors.length; i++) {
+            if (root.monitors[i].id === monitorId)
+                return root.monitors[i]
+        }
+        return null
+    }
+
+    function getVisibleWorkspaceIdsForMonitor(monitorLike) {
+        if (!monitorLike)
+            return []
+
+        const monitorId = monitorLike.id
+        const monitorData = getMonitorDataById(monitorId) || monitorLike
+        const ids = []
+
+        const activeWorkspaceId = monitorData?.activeWorkspace?.id
+        if (typeof activeWorkspaceId === "number")
+            ids.push(activeWorkspaceId)
+
+        const specialWorkspaceId = monitorData?.specialWorkspace?.id
+        if (typeof specialWorkspaceId === "number" && specialWorkspaceId !== 0)
+            ids.push(specialWorkspaceId)
+
+        return ids
+    }
+
+    function isWindowVisibleOnMonitor(windowData, monitorLike) {
+        if (!windowData || !monitorLike)
+            return false
+
+        const visibleWorkspaceIds = getVisibleWorkspaceIdsForMonitor(monitorLike)
+        return windowData.monitor === monitorLike.id && visibleWorkspaceIds.includes(windowData?.workspace?.id)
+    }
+
+    function monitorHasFullscreenWindow(monitorLike) {
+        if (!monitorLike)
+            return false
+
+        const toplevel = ToplevelManager.activeToplevel
+        if (toplevel && toplevel.fullscreen && Hyprland.focusedMonitor?.id === monitorLike.id)
+            return true
+
+        for (let i = 0; i < root.windowList.length; i++) {
+            const windowData = root.windowList[i]
+            if (windowData.fullscreen && isWindowVisibleOnMonitor(windowData, monitorLike))
+                return true
+        }
+
+        return false
+    }
+
+    function monitorHasVisibleTiledWindows(monitorLike) {
+        if (!monitorLike)
+            return false
+
+        for (let i = 0; i < root.windowList.length; i++) {
+            const windowData = root.windowList[i]
+            if (!windowData.floating && isWindowVisibleOnMonitor(windowData, monitorLike))
+                return true
+        }
+
+        return false
+    }
+
     function updateMaps() {
         let occupationMap = {}
         let windowsMap = {}
