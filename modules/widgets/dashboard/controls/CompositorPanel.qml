@@ -521,6 +521,145 @@ Item {
 
     }
 
+    component ManagedToggleRow: StyledRect {
+        id: managedToggleRow
+        property string label: ""
+        property bool managedChecked: true
+        property bool checked: false
+        signal managementToggled(bool checked)
+        signal toggled(bool value)
+
+        variant: rowHover.hovered ? "focus" : "common"
+        Layout.fillWidth: true
+        Layout.preferredHeight: 56
+        radius: Styling.radius(-2)
+        enableShadow: true
+        opacity: managedChecked ? 1.0 : 0.55
+
+        HoverHandler {
+            id: rowHover
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
+            spacing: 12
+
+            Item {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+
+                Item {
+                    anchors.fill: parent
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !managedToggleRow.managedChecked
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedToggleRow.managedChecked
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+
+                StyledToolTip {
+                    tooltipText: managedToggleRow.managedChecked ? "Managed by Ambxst" : "Managed by Compositor"
+                    show: managementClickArea.containsMouse
+                }
+            }
+
+            Text {
+                text: managedToggleRow.label
+                font.family: Config.theme.font
+                font.pixelSize: Styling.fontSize(0)
+                font.weight: Font.Medium
+                color: Colors.overBackground
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+
+            Switch {
+                id: managedToggleSwitch
+                checked: managedToggleRow.checked
+                enabled: managedToggleRow.managedChecked
+
+                onCheckedChanged: {
+                    if (checked !== managedToggleRow.checked) {
+                        managedToggleRow.toggled(checked);
+                    }
+                }
+
+                indicator: Rectangle {
+                    implicitWidth: 40
+                    implicitHeight: 20
+                    x: managedToggleSwitch.leftPadding
+                    y: parent.height / 2 - height / 2
+                    radius: height / 2
+                    color: managedToggleSwitch.checked ? Styling.srItem("overprimary") : Colors.surfaceBright
+                    border.color: managedToggleSwitch.checked ? Styling.srItem("overprimary") : Colors.outline
+                    opacity: managedToggleSwitch.enabled ? 1.0 : 0.55
+
+                    Behavior on color {
+                        enabled: Config.animDuration > 0
+                        ColorAnimation {
+                            duration: Config.animDuration / 2
+                        }
+                    }
+
+                    Rectangle {
+                        x: managedToggleSwitch.checked ? parent.width - width - 2 : 2
+                        y: 2
+                        width: parent.height - 4
+                        height: width
+                        radius: width / 2
+                        color: managedToggleSwitch.checked ? Colors.background : Colors.overSurfaceVariant
+
+                        Behavior on x {
+                            enabled: Config.animDuration > 0
+                            NumberAnimation {
+                                duration: Config.animDuration / 2
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
+                }
+                background: null
+            }
+        }
+
+        MouseArea {
+            id: managementClickArea
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            z: 1
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: mouse => {
+                managedToggleRow.managementToggled(!managedToggleRow.managedChecked);
+                mouse.accepted = true;
+            }
+        }
+    }
+
     // Inline component for decimal input rows
     component DecimalInputRow: RowLayout {
         id: decimalInputRowRoot
@@ -593,6 +732,161 @@ Item {
             font.pixelSize: Styling.fontSize(0)
             color: Colors.overSurfaceVariant
             visible: suffix !== ""
+        }
+    }
+
+    component ManagedDecimalInputRow: StyledRect {
+        id: managedDecimalRow
+        property string label: ""
+        property bool managedChecked: true
+        property bool valueEnabled: managedChecked
+        property real value: 0.0
+        property real minValue: 0.0
+        property real maxValue: 1.0
+        property string suffix: ""
+        signal managementToggled(bool checked)
+        signal valueEdited(real newValue)
+
+        variant: rowHover.hovered ? "focus" : "common"
+        Layout.fillWidth: true
+        Layout.preferredHeight: 56
+        radius: Styling.radius(-2)
+        enableShadow: true
+        opacity: valueEnabled ? 1.0 : 0.55
+
+        HoverHandler {
+            id: rowHover
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
+            spacing: 12
+
+            Item {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+
+                Item {
+                    anchors.fill: parent
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        color: Colors.background
+                        visible: !managedDecimalRow.managedChecked
+                    }
+
+                    StyledRect {
+                        variant: "primary"
+                        anchors.fill: parent
+                        radius: Styling.radius(-4)
+                        visible: managedDecimalRow.managedChecked
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Icons.accept
+                            color: Styling.srItem("primary")
+                            font.family: Icons.font
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+
+                StyledToolTip {
+                    tooltipText: managedDecimalRow.managedChecked ? "Managed by Ambxst" : "Managed by Compositor"
+                    show: managementClickArea.containsMouse
+                }
+            }
+
+            Text {
+                text: managedDecimalRow.label
+                font.family: Config.theme.font
+                font.pixelSize: Styling.fontSize(0)
+                font.weight: Font.Medium
+                color: Colors.overBackground
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+
+            StyledRect {
+                variant: "internalbg"
+                Layout.preferredWidth: 76
+                Layout.preferredHeight: 28
+                radius: Styling.radius(-4)
+                opacity: managedDecimalRow.valueEnabled ? 1.0 : 0.75
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    spacing: 4
+
+                    TextInput {
+                        id: managedDecimalInput
+                        Layout.fillWidth: true
+                        font.family: Config.theme.font
+                        font.pixelSize: Styling.fontSize(-1)
+                        font.weight: Font.Medium
+                        color: Styling.srItem("overprimary")
+                        selectByMouse: true
+                        clip: true
+                        verticalAlignment: TextInput.AlignVCenter
+                        horizontalAlignment: TextInput.AlignHCenter
+                        enabled: managedDecimalRow.valueEnabled
+                        validator: DoubleValidator {
+                            bottom: managedDecimalRow.minValue
+                            top: managedDecimalRow.maxValue
+                            decimals: 2
+                        }
+
+                        readonly property real configValue: managedDecimalRow.value
+                        onConfigValueChanged: {
+                            if (!activeFocus) {
+                                if (Math.abs(parseFloat(text) - configValue) > 0.001 || text === "")
+                                    text = configValue.toFixed(1);
+                            }
+                        }
+                        Component.onCompleted: text = configValue.toFixed(1)
+
+                        onEditingFinished: {
+                            let newVal = parseFloat(text);
+                            if (!isNaN(newVal)) {
+                                newVal = Math.max(managedDecimalRow.minValue, Math.min(managedDecimalRow.maxValue, newVal));
+                                managedDecimalRow.valueEdited(newVal);
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: managedDecimalRow.suffix
+                        font.family: Config.theme.font
+                        font.pixelSize: Styling.fontSize(-2)
+                        font.weight: Font.Medium
+                        color: Colors.overSurfaceVariant
+                        visible: managedDecimalRow.suffix !== ""
+                    }
+                }
+            }
+        }
+
+        MouseArea {
+            id: managementClickArea
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            z: 1
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: mouse => {
+                managedDecimalRow.managementToggled(!managedDecimalRow.managedChecked);
+                mouse.accepted = true;
+            }
         }
     }
 
@@ -1287,123 +1581,189 @@ Item {
                                 Layout.bottomMargin: -4
                             }
 
-                            ToggleRow {
+                            ManagedToggleRow {
                                 label: "Enabled"
+                                managedChecked: Config.hyprland.manageBlurEnabled ?? true
                                 checked: Config.hyprland.blurEnabled ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurEnabled = checked;
+                                }
                                 onToggled: value => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurEnabled = value;
                                 }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Size"
+                                checked: Config.hyprland.manageBlurSize ?? true
+                                valueEnabled: Config.hyprland.manageBlurSize ?? true
                                 value: Config.hyprland.blurSize ?? 8
                                 minValue: 0
                                 maxValue: 20
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurSize = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurSize = newValue;
                                 }
                             }
 
-                            NumberInputRow {
+                            ManagedNumberInputRow {
                                 label: "Passes"
+                                checked: Config.hyprland.manageBlurPasses ?? true
+                                valueEnabled: Config.hyprland.manageBlurPasses ?? true
                                 value: Config.hyprland.blurPasses ?? 1
                                 minValue: 0
                                 maxValue: 4
+                                onToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurPasses = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurPasses = newValue;
                                 }
                             }
 
-                            ToggleRow {
+                            ManagedToggleRow {
                                 label: "Xray"
+                                managedChecked: Config.hyprland.manageBlurXray ?? true
                                 checked: Config.hyprland.blurXray ?? false
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurXray = checked;
+                                }
                                 onToggled: value => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurXray = value;
                                 }
                             }
 
-                            ToggleRow {
+                            ManagedToggleRow {
                                 label: "New Optimizations"
+                                managedChecked: Config.hyprland.manageBlurNewOptimizations ?? true
                                 checked: Config.hyprland.blurNewOptimizations ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurNewOptimizations = checked;
+                                }
                                 onToggled: value => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurNewOptimizations = value;
                                 }
                             }
 
-                            ToggleRow {
+                            ManagedToggleRow {
                                 label: "Ignore Opacity"
+                                managedChecked: Config.hyprland.manageBlurIgnoreOpacity ?? true
                                 checked: Config.hyprland.blurIgnoreOpacity ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurIgnoreOpacity = checked;
+                                }
                                 onToggled: value => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurIgnoreOpacity = value;
                                 }
                             }
 
-                            ToggleRow {
+                            ManagedToggleRow {
                                 label: "Explicit Ignorealpha"
+                                managedChecked: Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true
                                 checked: Config.hyprland.blurExplicitIgnoreAlpha ?? false
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurExplicitIgnoreAlpha = checked;
+                                }
                                 onToggled: value => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurExplicitIgnoreAlpha = value;
                                 }
                             }
 
-                            DecimalInputRow {
+                            ManagedDecimalInputRow {
                                 label: "Ignorealpha Value"
+                                managedChecked: Config.hyprland.manageBlurIgnoreAlphaValue ?? true
                                 value: Config.hyprland.blurIgnoreAlphaValue ?? 0.2
                                 minValue: 0.0
                                 maxValue: 1.0
-                                enabled: Config.hyprland.blurExplicitIgnoreAlpha
+                                valueEnabled: (Config.hyprland.manageBlurIgnoreAlphaValue ?? true) && (Config.hyprland.blurExplicitIgnoreAlpha ?? false)
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurIgnoreAlphaValue = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurIgnoreAlphaValue = newValue;
                                 }
                             }
 
-                            DecimalInputRow {
+                            ManagedDecimalInputRow {
                                 label: "Noise"
+                                managedChecked: Config.hyprland.manageBlurNoise ?? true
                                 value: Config.hyprland.blurNoise ?? 0.01
                                 minValue: 0.0
                                 maxValue: 1.0
+                                valueEnabled: Config.hyprland.manageBlurNoise ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurNoise = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurNoise = newValue;
                                 }
                             }
 
-                            DecimalInputRow {
+                            ManagedDecimalInputRow {
                                 label: "Contrast"
+                                managedChecked: Config.hyprland.manageBlurContrast ?? true
                                 value: Config.hyprland.blurContrast ?? 0.89
                                 minValue: 0.0
                                 maxValue: 2.0
+                                valueEnabled: Config.hyprland.manageBlurContrast ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurContrast = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurContrast = newValue;
                                 }
                             }
 
-                            DecimalInputRow {
+                            ManagedDecimalInputRow {
                                 label: "Brightness"
+                                managedChecked: Config.hyprland.manageBlurBrightness ?? true
                                 value: Config.hyprland.blurBrightness ?? 0.81
                                 minValue: 0.0
                                 maxValue: 2.0
+                                valueEnabled: Config.hyprland.manageBlurBrightness ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurBrightness = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurBrightness = newValue;
                                 }
                             }
 
-                            DecimalInputRow {
+                            ManagedDecimalInputRow {
                                 label: "Vibrancy"
+                                managedChecked: Config.hyprland.manageBlurVibrancy ?? true
                                 value: Config.hyprland.blurVibrancy ?? 0.17
                                 minValue: 0.0
                                 maxValue: 1.0
+                                valueEnabled: Config.hyprland.manageBlurVibrancy ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurVibrancy = checked;
+                                }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurVibrancy = newValue;

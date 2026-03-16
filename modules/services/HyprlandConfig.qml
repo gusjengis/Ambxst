@@ -96,22 +96,22 @@ QtObject {
             { key: "decoration:shadow:color_inactive", value: shadowColorInactiveFormatted, managed: true },
             { key: "decoration:shadow:offset", value: Config.hyprland.shadowOffset, managed: true },
             { key: "decoration:shadow:scale", value: Config.hyprland.shadowScale, managed: true },
-            { key: "decoration:blur:enabled", value: Config.hyprland.blurEnabled, managed: true },
-            { key: "decoration:blur:size", value: Config.hyprland.blurSize, managed: true },
-            { key: "decoration:blur:passes", value: Config.hyprland.blurPasses, managed: true },
-            { key: "decoration:blur:ignore_opacity", value: Config.hyprland.blurIgnoreOpacity, managed: true },
-            { key: "decoration:blur:new_optimizations", value: Config.hyprland.blurNewOptimizations, managed: true },
-            { key: "decoration:blur:xray", value: Config.hyprland.blurXray, managed: true },
-            { key: "decoration:blur:noise", value: Config.hyprland.blurNoise, managed: true },
-            { key: "decoration:blur:contrast", value: Config.hyprland.blurContrast, managed: true },
-            { key: "decoration:blur:brightness", value: Config.hyprland.blurBrightness, managed: true },
-            { key: "decoration:blur:vibrancy", value: Config.hyprland.blurVibrancy, managed: true },
-            { key: "decoration:blur:vibrancy_darkness", value: Config.hyprland.blurVibrancyDarkness, managed: true },
-            { key: "decoration:blur:special", value: Config.hyprland.blurSpecial, managed: true },
-            { key: "decoration:blur:popups", value: Config.hyprland.blurPopups, managed: true },
-            { key: "decoration:blur:popups_ignorealpha", value: Config.hyprland.blurPopupsIgnorealpha, managed: true },
-            { key: "decoration:blur:input_methods", value: Config.hyprland.blurInputMethods, managed: true },
-            { key: "decoration:blur:input_methods_ignorealpha", value: Config.hyprland.blurInputMethodsIgnorealpha, managed: true },
+            { key: "decoration:blur:enabled", value: Config.hyprland.blurEnabled, managed: Config.hyprland.manageBlurEnabled ?? true },
+            { key: "decoration:blur:size", value: Config.hyprland.blurSize, managed: Config.hyprland.manageBlurSize ?? true },
+            { key: "decoration:blur:passes", value: Config.hyprland.blurPasses, managed: Config.hyprland.manageBlurPasses ?? true },
+            { key: "decoration:blur:ignore_opacity", value: Config.hyprland.blurIgnoreOpacity, managed: Config.hyprland.manageBlurIgnoreOpacity ?? true },
+            { key: "decoration:blur:new_optimizations", value: Config.hyprland.blurNewOptimizations, managed: Config.hyprland.manageBlurNewOptimizations ?? true },
+            { key: "decoration:blur:xray", value: Config.hyprland.blurXray, managed: Config.hyprland.manageBlurXray ?? true },
+            { key: "decoration:blur:noise", value: Config.hyprland.blurNoise, managed: Config.hyprland.manageBlurNoise ?? true },
+            { key: "decoration:blur:contrast", value: Config.hyprland.blurContrast, managed: Config.hyprland.manageBlurContrast ?? true },
+            { key: "decoration:blur:brightness", value: Config.hyprland.blurBrightness, managed: Config.hyprland.manageBlurBrightness ?? true },
+            { key: "decoration:blur:vibrancy", value: Config.hyprland.blurVibrancy, managed: Config.hyprland.manageBlurVibrancy ?? true },
+            { key: "decoration:blur:vibrancy_darkness", value: Config.hyprland.blurVibrancyDarkness, managed: Config.hyprland.manageBlurVibrancyDarkness ?? true },
+            { key: "decoration:blur:special", value: Config.hyprland.blurSpecial, managed: Config.hyprland.manageBlurSpecial ?? true },
+            { key: "decoration:blur:popups", value: Config.hyprland.blurPopups, managed: Config.hyprland.manageBlurPopups ?? true },
+            { key: "decoration:blur:popups_ignorealpha", value: Config.hyprland.blurPopupsIgnorealpha, managed: Config.hyprland.manageBlurPopupsIgnorealpha ?? true },
+            { key: "decoration:blur:input_methods", value: Config.hyprland.blurInputMethods, managed: Config.hyprland.manageBlurInputMethods ?? true },
+            { key: "decoration:blur:input_methods_ignorealpha", value: Config.hyprland.blurInputMethodsIgnorealpha, managed: Config.hyprland.manageBlurInputMethodsIgnorealpha ?? true },
             { raw: "keyword bezier myBezier,0.4,0.0,0.2,1.0", managed: true },
             { raw: "keyword animation windows,1,2.5,myBezier,popin 80%", managed: true },
             { raw: "keyword animation border,1,2.5,myBezier", managed: true },
@@ -356,55 +356,199 @@ QtObject {
         function onBlurEnabledChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurEnabledChanged() {
+            if (!(Config.hyprland.manageBlurEnabled ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurSizeChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurSizeChanged() {
+            if (!(Config.hyprland.manageBlurSize ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurPassesChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurPassesChanged() {
+            if (!(Config.hyprland.manageBlurPasses ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurIgnoreOpacityChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurIgnoreOpacityChanged() {
+            if (!(Config.hyprland.manageBlurIgnoreOpacity ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurExplicitIgnoreAlphaChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurExplicitIgnoreAlphaChanged() {
+            if (!(Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurIgnoreAlphaValueChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurIgnoreAlphaValueChanged() {
+            if (!(Config.hyprland.manageBlurIgnoreAlphaValue ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurNewOptimizationsChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurNewOptimizationsChanged() {
+            if (!(Config.hyprland.manageBlurNewOptimizations ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurXrayChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurXrayChanged() {
+            if (!(Config.hyprland.manageBlurXray ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurNoiseChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurNoiseChanged() {
+            if (!(Config.hyprland.manageBlurNoise ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurContrastChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurContrastChanged() {
+            if (!(Config.hyprland.manageBlurContrast ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurBrightnessChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurBrightnessChanged() {
+            if (!(Config.hyprland.manageBlurBrightness ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurVibrancyChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurVibrancyChanged() {
+            if (!(Config.hyprland.manageBlurVibrancy ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurVibrancyDarknessChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurVibrancyDarknessChanged() {
+            if (!(Config.hyprland.manageBlurVibrancyDarkness ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurSpecialChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurSpecialChanged() {
+            if (!(Config.hyprland.manageBlurSpecial ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurPopupsChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurPopupsChanged() {
+            if (!(Config.hyprland.manageBlurPopups ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurPopupsIgnorealphaChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurPopupsIgnorealphaChanged() {
+            if (!(Config.hyprland.manageBlurPopupsIgnorealpha ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
         function onBlurInputMethodsChanged() {
             applyHyprlandConfig();
         }
+        function onManageBlurInputMethodsChanged() {
+            if (!(Config.hyprland.manageBlurInputMethods ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
+            applyHyprlandConfig();
+        }
         function onBlurInputMethodsIgnorealphaChanged() {
+            applyHyprlandConfig();
+        }
+        function onManageBlurInputMethodsIgnorealphaChanged() {
+            if (!(Config.hyprland.manageBlurInputMethodsIgnorealpha ?? true)) {
+                hyprctlReloadProcess.running = true;
+                return;
+            }
+
             applyHyprlandConfig();
         }
     }

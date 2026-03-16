@@ -682,23 +682,41 @@ Singleton {
             property real shadowOpacity: 0.5
             property string shadowOffset: "0 0"
             property real shadowScale: 1.0
+            property bool manageBlurEnabled: true
             property bool blurEnabled: true
+            property bool manageBlurSize: true
             property int blurSize: 4
+            property bool manageBlurPasses: true
             property int blurPasses: 2
+            property bool manageBlurIgnoreOpacity: true
             property bool blurIgnoreOpacity: true
+            property bool manageBlurExplicitIgnoreAlpha: true
             property bool blurExplicitIgnoreAlpha: false
+            property bool manageBlurIgnoreAlphaValue: true
             property real blurIgnoreAlphaValue: 0.2
+            property bool manageBlurNewOptimizations: true
             property bool blurNewOptimizations: true
+            property bool manageBlurXray: true
             property bool blurXray: false
+            property bool manageBlurNoise: true
             property real blurNoise: 0.0
+            property bool manageBlurContrast: true
             property real blurContrast: 1.0
+            property bool manageBlurBrightness: true
             property real blurBrightness: 1.0
+            property bool manageBlurVibrancy: true
             property real blurVibrancy: 0.0
+            property bool manageBlurVibrancyDarkness: true
             property real blurVibrancyDarkness: 0.0
+            property bool manageBlurSpecial: true
             property bool blurSpecial: true
+            property bool manageBlurPopups: true
             property bool blurPopups: false
+            property bool manageBlurPopupsIgnorealpha: true
             property real blurPopupsIgnorealpha: 0.2
+            property bool manageBlurInputMethods: true
             property bool blurInputMethods: false
+            property bool manageBlurInputMethodsIgnorealpha: true
             property real blurInputMethodsIgnorealpha: 0.2
         }
     }
