@@ -757,7 +757,7 @@ Item {
         Layout.preferredHeight: 56
         radius: Styling.radius(-2)
         enableShadow: true
-        opacity: valueEnabled ? 1.0 : 0.55
+        opacity: managedChecked ? 1.0 : 0.55
 
         HoverHandler {
             id: rowHover
