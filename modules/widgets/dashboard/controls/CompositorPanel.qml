@@ -740,11 +740,16 @@ Item {
         property string label: ""
         property bool managedChecked: true
         property bool valueEnabled: managedChecked
+        property bool inlineToggleVisible: false
+        property string inlineToggleLabel: ""
+        property bool inlineToggleChecked: false
+        property bool inlineToggleEnabled: managedChecked
         property real value: 0.0
         property real minValue: 0.0
         property real maxValue: 1.0
         property string suffix: ""
         signal managementToggled(bool checked)
+        signal inlineToggleToggled(bool checked)
         signal valueEdited(real newValue)
 
         variant: rowHover.hovered ? "focus" : "common"
@@ -810,6 +815,67 @@ Item {
                 color: Colors.overBackground
                 Layout.fillWidth: true
                 elide: Text.ElideRight
+            }
+
+            RowLayout {
+                visible: managedDecimalRow.inlineToggleVisible
+                spacing: 6
+
+                Text {
+                    text: managedDecimalRow.inlineToggleLabel
+                    font.family: Config.theme.font
+                    font.pixelSize: Styling.fontSize(-1)
+                    color: Colors.overSurfaceVariant
+                    opacity: managedDecimalRow.inlineToggleEnabled ? 1.0 : 0.6
+                }
+
+                Switch {
+                    id: managedDecimalInlineToggle
+                    checked: managedDecimalRow.inlineToggleChecked
+                    enabled: managedDecimalRow.inlineToggleEnabled
+
+                    onCheckedChanged: {
+                        if (checked !== managedDecimalRow.inlineToggleChecked) {
+                            managedDecimalRow.inlineToggleToggled(checked);
+                        }
+                    }
+
+                    indicator: Rectangle {
+                        implicitWidth: 34
+                        implicitHeight: 18
+                        x: managedDecimalInlineToggle.leftPadding
+                        y: parent.height / 2 - height / 2
+                        radius: height / 2
+                        color: managedDecimalInlineToggle.checked ? Styling.srItem("overprimary") : Colors.surfaceBright
+                        border.color: managedDecimalInlineToggle.checked ? Styling.srItem("overprimary") : Colors.outline
+                        opacity: managedDecimalInlineToggle.enabled ? 1.0 : 0.55
+
+                        Behavior on color {
+                            enabled: Config.animDuration > 0
+                            ColorAnimation {
+                                duration: Config.animDuration / 2
+                            }
+                        }
+
+                        Rectangle {
+                            x: managedDecimalInlineToggle.checked ? parent.width - width - 2 : 2
+                            y: 2
+                            width: parent.height - 4
+                            height: width
+                            radius: width / 2
+                            color: managedDecimalInlineToggle.checked ? Colors.background : Colors.overSurfaceVariant
+
+                            Behavior on x {
+                                enabled: Config.animDuration > 0
+                                NumberAnimation {
+                                    duration: Config.animDuration / 2
+                                    easing.type: Easing.OutCubic
+                                }
+                            }
+                        }
+                    }
+                    background: null
+                }
             }
 
             StyledRect {
@@ -1671,30 +1737,25 @@ Item {
                                 }
                             }
 
-                            ManagedToggleRow {
-                                label: "Explicit Ignorealpha"
-                                managedChecked: Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true
-                                checked: Config.hyprland.blurExplicitIgnoreAlpha ?? false
-                                onManagementToggled: checked => {
-                                    GlobalStates.markCompositorChanged();
-                                    Config.hyprland.manageBlurExplicitIgnoreAlpha = checked;
-                                }
-                                onToggled: value => {
-                                    GlobalStates.markCompositorChanged();
-                                    Config.hyprland.blurExplicitIgnoreAlpha = value;
-                                }
-                            }
-
                             ManagedDecimalInputRow {
-                                label: "Ignorealpha Value"
-                                managedChecked: Config.hyprland.manageBlurIgnoreAlphaValue ?? true
+                                label: "Ignore Alpha"
+                                managedChecked: (Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true) && (Config.hyprland.manageBlurIgnoreAlphaValue ?? true)
+                                inlineToggleVisible: true
+                                inlineToggleLabel: "Auto"
+                                inlineToggleChecked: !(Config.hyprland.blurExplicitIgnoreAlpha ?? false)
+                                inlineToggleEnabled: (Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true) && (Config.hyprland.manageBlurIgnoreAlphaValue ?? true)
                                 value: Config.hyprland.blurIgnoreAlphaValue ?? 0.2
                                 minValue: 0.0
                                 maxValue: 1.0
-                                valueEnabled: (Config.hyprland.manageBlurIgnoreAlphaValue ?? true) && (Config.hyprland.blurExplicitIgnoreAlpha ?? false)
+                                valueEnabled: (Config.hyprland.manageBlurExplicitIgnoreAlpha ?? true) && (Config.hyprland.manageBlurIgnoreAlphaValue ?? true) && (Config.hyprland.blurExplicitIgnoreAlpha ?? false)
                                 onManagementToggled: checked => {
                                     GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurExplicitIgnoreAlpha = checked;
                                     Config.hyprland.manageBlurIgnoreAlphaValue = checked;
+                                }
+                                onInlineToggleToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurExplicitIgnoreAlpha = !checked;
                                 }
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
@@ -1767,6 +1828,99 @@ Item {
                                 onValueEdited: newValue => {
                                     GlobalStates.markCompositorChanged();
                                     Config.hyprland.blurVibrancy = newValue;
+                                }
+                            }
+
+                            ManagedDecimalInputRow {
+                                label: "Vibrancy Darkness"
+                                managedChecked: Config.hyprland.manageBlurVibrancyDarkness ?? true
+                                value: Config.hyprland.blurVibrancyDarkness ?? 0.0
+                                minValue: 0.0
+                                maxValue: 1.0
+                                valueEnabled: Config.hyprland.manageBlurVibrancyDarkness ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurVibrancyDarkness = checked;
+                                }
+                                onValueEdited: newValue => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurVibrancyDarkness = newValue;
+                                }
+                            }
+
+                            ManagedToggleRow {
+                                label: "Special Workspace"
+                                managedChecked: Config.hyprland.manageBlurSpecial ?? true
+                                checked: Config.hyprland.blurSpecial ?? true
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurSpecial = checked;
+                                }
+                                onToggled: value => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurSpecial = value;
+                                }
+                            }
+
+                            ManagedToggleRow {
+                                label: "Popups"
+                                managedChecked: Config.hyprland.manageBlurPopups ?? true
+                                checked: Config.hyprland.blurPopups ?? false
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurPopups = checked;
+                                }
+                                onToggled: value => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurPopups = value;
+                                }
+                            }
+
+                            ManagedDecimalInputRow {
+                                label: "Popups Ignorealpha"
+                                managedChecked: Config.hyprland.manageBlurPopupsIgnorealpha ?? true
+                                value: Config.hyprland.blurPopupsIgnorealpha ?? 0.2
+                                minValue: 0.0
+                                maxValue: 1.0
+                                valueEnabled: (Config.hyprland.manageBlurPopupsIgnorealpha ?? true) && (Config.hyprland.blurPopups ?? false)
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurPopupsIgnorealpha = checked;
+                                }
+                                onValueEdited: newValue => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurPopupsIgnorealpha = newValue;
+                                }
+                            }
+
+                            ManagedToggleRow {
+                                label: "Input Methods"
+                                managedChecked: Config.hyprland.manageBlurInputMethods ?? true
+                                checked: Config.hyprland.blurInputMethods ?? false
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurInputMethods = checked;
+                                }
+                                onToggled: value => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurInputMethods = value;
+                                }
+                            }
+
+                            ManagedDecimalInputRow {
+                                label: "Input Methods Ignorealpha"
+                                managedChecked: Config.hyprland.manageBlurInputMethodsIgnorealpha ?? true
+                                value: Config.hyprland.blurInputMethodsIgnorealpha ?? 0.2
+                                minValue: 0.0
+                                maxValue: 1.0
+                                valueEnabled: (Config.hyprland.manageBlurInputMethodsIgnorealpha ?? true) && (Config.hyprland.blurInputMethods ?? false)
+                                onManagementToggled: checked => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.manageBlurInputMethodsIgnorealpha = checked;
+                                }
+                                onValueEdited: newValue => {
+                                    GlobalStates.markCompositorChanged();
+                                    Config.hyprland.blurInputMethodsIgnorealpha = newValue;
                                 }
                             }
                         }
