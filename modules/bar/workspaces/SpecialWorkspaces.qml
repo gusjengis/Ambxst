@@ -55,7 +55,11 @@ Item {
     }
 
     function getWorkspaceIconSource(windowData) {
-        return Quickshell.iconPath(AppSearch.getCachedIcon(windowData?.class), "image-missing");
+        return AppSearch.getResolvedIconSource({
+            wmClass: windowData?.class || "",
+            initialClass: windowData?.initialClass || "",
+            title: windowData?.title || ""
+        });
     }
 
     function getNamePillWidth(label) {

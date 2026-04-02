@@ -308,7 +308,11 @@ Item {
                     readonly property real targetWidth: Math.round((windowData?.size[0] || 100) * scale_)
                     readonly property real targetHeight: Math.round((windowData?.size[1] || 100) * scale_)
                     readonly property bool compactMode: targetHeight < 60 || targetWidth < 60
-                    readonly property string iconPath: AppSearch.guessIcon(windowData?.class || "")
+                    readonly property string iconSource: AppSearch.getResolvedIconSource({
+                        wmClass: windowData?.class || "",
+                        initialClass: windowData?.initialClass || "",
+                        title: windowData?.title || ""
+                    })
                     readonly property int calculatedRadius: Styling.radius(-2)
                     readonly property bool isMatched: root.checkWindowMatched(windowData?.address)
                     readonly property bool isSelected: root.checkWindowSelected(windowData?.address)
@@ -406,7 +410,7 @@ Item {
                         anchors.centerIn: parent
                         width: iconSize
                         height: iconSize
-                        source: Quickshell.iconPath(windowDelegate.iconPath, "image-missing")
+                        source: windowDelegate.iconSource
                         sourceSize: Qt.size(iconSize, iconSize)
                         asynchronous: true
                         visible: !Config.performance.windowPreview
@@ -434,7 +438,7 @@ Item {
                         anchors.margins: 4
                         width: 16
                         height: 16
-                        source: Quickshell.iconPath(windowDelegate.iconPath, "image-missing")
+                        source: windowDelegate.iconSource
                         sourceSize: Qt.size(16, 16)
                         asynchronous: true
                         opacity: 0.8

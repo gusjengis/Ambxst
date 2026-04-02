@@ -739,12 +739,12 @@ Rectangle {
                                 mipmap: true
                                 id: appIconImage
                                 anchors.fill: parent
-                                source: "image://icon/" + appIcon
+                                source: AppSearch.getIconSource(appIcon)
                                 fillMode: Image.PreserveAspectFit
-                                
+
                                 onStatusChanged: {
                                     if (status === Image.Error) {
-                                        source = "image://icon/image-missing";
+                                        source = AppSearch.fallbackIconSource;
                                     }
                                 }
                             }

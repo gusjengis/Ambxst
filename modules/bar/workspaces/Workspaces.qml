@@ -441,7 +441,11 @@ Item {
                             return winFocus < bestFocus ? win : best;
                         }, null);
                     }
-                    property var mainAppIconSource: Quickshell.iconPath(AppSearch.getCachedIcon(focusedWindow?.class), "image-missing")
+                    property var mainAppIconSource: AppSearch.getResolvedIconSource({
+                        wmClass: focusedWindow?.class || "",
+                        initialClass: focusedWindow?.initialClass || "",
+                        title: focusedWindow?.title || ""
+                    })
 
                     Text {
                         opacity: Config.workspaces.alwaysShowNumbers || ((Config.workspaces.showNumbers && (!Config.workspaces.showAppIcons || !workspaceButtonBackground.focusedWindow || Config.workspaces.alwaysShowNumbers)) || (Config.workspaces.alwaysShowNumbers && !Config.workspaces.showAppIcons)) ? 1 : 0
@@ -572,7 +576,11 @@ Item {
                             return winFocus < bestFocus ? win : best;
                         }, null);
                     }
-                    property var mainAppIconSource: Quickshell.iconPath(AppSearch.getCachedIcon(focusedWindow?.class), "image-missing")
+                    property var mainAppIconSource: AppSearch.getResolvedIconSource({
+                        wmClass: focusedWindow?.class || "",
+                        initialClass: focusedWindow?.initialClass || "",
+                        title: focusedWindow?.title || ""
+                    })
 
                     Text {
                         opacity: Config.workspaces.alwaysShowNumbers || ((Config.workspaces.showNumbers && (!Config.workspaces.showAppIcons || !workspaceButtonBackgroundVert.focusedWindow || Config.workspaces.alwaysShowNumbers)) || (Config.workspaces.alwaysShowNumbers && !Config.workspaces.showAppIcons)) ? 1 : 0
