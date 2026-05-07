@@ -190,6 +190,72 @@ Singleton {
         return values;
     }
 
+    function normalizedExecKey(app) {
+        const command = app?.command || [];
+        const values = [];
+
+        if (command.length > 0) {
+            for (let i = 0; i < command.length; i++) {
+                const arg = String(command[i] || "").trim();
+                if (arg.length === 0 || /^%[fFuUijkc]$/.test(arg))
+                    continue;
+                values.push(arg);
+            }
+        } else if (app?.execString) {
+            const parts = String(app.execString).split(/\s+/);
+            for (let i = 0; i < parts.length; i++) {
+                const arg = parts[i].trim();
+                if (arg.length === 0 || /^%[fFuUijkc]$/.test(arg))
+                    continue;
+                values.push(arg);
+            }
+        }
+
+        return values.join(" ").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function launcherEntryKey(app) {
+        const nameKey = canonicalize(app?.name || "");
+        const execKey = normalizedExecKey(app);
+        if (nameKey.length > 0 && execKey.length > 0)
+            return nameKey + "|" + execKey;
+
+        return canonicalize(app?.id || app?.name || "");
+    }
+
+    function launcherEntryRank(app) {
+        let rank = 0;
+        if (app?.icon)
+            rank += 4;
+        if (app?.comment)
+            rank += 2;
+        if (app?.genericName)
+            rank += 1;
+
+        return rank;
+    }
+
+    function getLauncherApps() {
+        const apps = Array.from(DesktopEntries.applications.values);
+        const byKey = {};
+
+        for (let i = 0; i < apps.length; i++) {
+            const app = apps[i];
+            if (!app || app.noDisplay || !app.name)
+                continue;
+
+            const key = launcherEntryKey(app);
+            if (key.length === 0)
+                continue;
+
+            const existing = byKey[key];
+            if (!existing || launcherEntryRank(app) > launcherEntryRank(existing))
+                byKey[key] = app;
+        }
+
+        return Object.keys(byKey).map(key => byKey[key]).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     function buildEntryRecord(app) {
         const startupWmClass = getDesktopEntryProp(app, ["startupWmClass", "startupWMClass", "StartupWMClass", "wmClass"]);
         const candidates = [];
@@ -544,8 +610,7 @@ Singleton {
         }
     ]
 
-    readonly property list<DesktopEntry> list: Array.from(DesktopEntries.applications.values)
-        .sort((a, b) => a.name.localeCompare(b.name))
+    readonly property list<DesktopEntry> list: getLauncherApps()
 
     property var searchIndex: []
     property var allAppsCache: null
