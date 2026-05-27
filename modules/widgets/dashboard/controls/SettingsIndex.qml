@@ -143,6 +143,7 @@ QtObject {
         { label: "Blur Contrast", keywords: "intensity difference", section: 7, subSection: "blur", subLabel: "Compositor > Hyprland", icon: Icons.drop, isIcon: true },
         { label: "Blur Brightness", keywords: "light dark level", section: 7, subSection: "blur", subLabel: "Compositor > Hyprland", icon: Icons.drop, isIcon: true },
         { label: "Blur Vibrancy", keywords: "saturation color", section: 7, subSection: "blur", subLabel: "Compositor > Hyprland", icon: Icons.drop, isIcon: true },
+        { label: "Special Workspace Blur Control", keywords: "special workspace blur hyprland config compositor manage override", section: 7, subSection: "blur", subLabel: "Compositor > Hyprland", icon: Icons.drop, isIcon: true },
 
         // --- Ambxst / Shell ---
         { label: "Ambxst", keywords: "about info credits version shell", section: 8, subSection: "", subLabel: "", icon: Qt.resolvedUrl("../../../../assets/ambxst/ambxst-icon.svg"), isIcon: false },
