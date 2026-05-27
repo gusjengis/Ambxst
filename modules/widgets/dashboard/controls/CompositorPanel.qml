@@ -1848,15 +1848,6 @@ Item {
                                 }
                             }
 
-                            ToggleRow {
-                                label: "Hyprland Config Controls Special Workspace Blur"
-                                checked: !(Config.hyprland.manageBlurSpecial ?? true)
-                                onToggled: value => {
-                                    GlobalStates.markCompositorChanged();
-                                    Config.hyprland.manageBlurSpecial = !value;
-                                }
-                            }
-
                             ManagedToggleRow {
                                 label: "Special Workspace Blur"
                                 managedChecked: Config.hyprland.manageBlurSpecial ?? true
